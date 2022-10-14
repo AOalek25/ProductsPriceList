@@ -1,25 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Globalization;
 
 namespace ProducstLibrary.Model
 {
-  public class Milk : Product
-  {
-    #region Поля и свойства
+  public class Milk : IProduct
+  {   
+    #region Поля и свойства        
+    public Guid Id { get; init; }
+    public string Name { get; set; }
+    public string Manufacturer { get; set; }
+    public decimal Price { get; set; }
     public int FatContent { get; set; }
-    private string name;
-    public override string Name { get => $"{this.name} {this.FatContent}"; }
     #endregion
 
-    #region
-    public Milk(string name, int fatContent, string manufacturer, decimal price) : base(name, manufacturer, price)
+    #region Методы.
+    public int CompareTo(object? obj) => (((Product)obj).Name.CompareTo(this.Name));    
+    public string PrintInfo() => $"{Id}: {Name} {Manufacturer} {PrintPrice()}";  
+    public string PrintPrice() => string.Format(CultureInfo.CurrentCulture, "{0:c2}", this.Price);    
+    #endregion
+
+    #region Конструкторы
+    public Milk(Guid id, string name, string manufacturer, decimal price, int fatContent)
     {
-      this.FatContent = fatContent;
+      Id = id;
+      Name = name;
+      Manufacturer = manufacturer;
+      Price = price;
+      FatContent = fatContent;
     }
+
+    public Milk()
+    { }
+
     #endregion
   }
 }

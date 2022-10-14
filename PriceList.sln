@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32901.215
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleService", "ConsoleService\ConsoleService.csproj", "{4520B632-BF58-442F-8EEC-C057579FC3C2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleService", "ConsoleService\ConsoleService.csproj", "{4520B632-BF58-442F-8EEC-C057579FC3C2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProducstLibrary", "ProducstLibrary\ProducstLibrary.csproj", "{AE9685E7-0C5A-4896-9053-D48474EA80E6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProducstLibrary", "ProducstLibrary\ProducstLibrary.csproj", "{AE9685E7-0C5A-4896-9053-D48474EA80E6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelegramService", "TelegramService\TelegramService.csproj", "{88B3B017-F6C8-4515-825F-4F8945FA668F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebService", "WebService\WebService.csproj", "{FC025F2C-076A-4DF2-B766-EED4DBE7D4D8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebService", "WebService\WebService.csproj", "{FC025F2C-076A-4DF2-B766-EED4DBE7D4D8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelService", "ExcelService\ExcelService.csproj", "{0B667D50-EE5A-4A75-83C0-EBD0E7F1EA1C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,14 +25,14 @@ Global
 		{AE9685E7-0C5A-4896-9053-D48474EA80E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AE9685E7-0C5A-4896-9053-D48474EA80E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AE9685E7-0C5A-4896-9053-D48474EA80E6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{88B3B017-F6C8-4515-825F-4F8945FA668F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{88B3B017-F6C8-4515-825F-4F8945FA668F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{88B3B017-F6C8-4515-825F-4F8945FA668F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{88B3B017-F6C8-4515-825F-4F8945FA668F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FC025F2C-076A-4DF2-B766-EED4DBE7D4D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FC025F2C-076A-4DF2-B766-EED4DBE7D4D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FC025F2C-076A-4DF2-B766-EED4DBE7D4D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FC025F2C-076A-4DF2-B766-EED4DBE7D4D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B667D50-EE5A-4A75-83C0-EBD0E7F1EA1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B667D50-EE5A-4A75-83C0-EBD0E7F1EA1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B667D50-EE5A-4A75-83C0-EBD0E7F1EA1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B667D50-EE5A-4A75-83C0-EBD0E7F1EA1C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

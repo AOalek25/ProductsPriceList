@@ -1,53 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using OfficeOpenXml.FormulaParsing.Excel.Functions.Finance.Implementations;
+﻿
 using System.Globalization;
+using System.Reflection.Metadata.Ecma335;
 
 namespace ProducstLibrary.Model
 {
-  public class Product : ICloneable, IComparable
+  public class Product : IProduct
   {
-    #region Поля и свойства    
-    public Guid Id { init;  get; }
-    public virtual string Name { get; set; }    
-    public string Manufacturer { get; set; }    
-    public decimal Price  { get; set; }    
+    #region Поля и свойства
+    public Guid Id { get; init; }
+    public string Name { get; set; }
+    public string Manufacturer { get; set; }
+    public decimal Price { get; set; }
     #endregion
 
     #region Методы
-
-    public virtual string PrintInfo() => $"{Id}: {Name} {Manufacturer} {FormattedPrice()}";
-
-    public string FormattedPrice() => string.Format(CultureInfo.CurrentCulture, "{0:c2}", this.Price);
-
-    public object Clone() => MemberwiseClone();
-
-    public int CompareTo(object? obj)
-    {      
-      return (((Product)obj).PrintInfo().CompareTo(this.PrintInfo()));           
-    }
-
-    public override bool Equals(object? obj)
-    {
-      return obj is Product product &&
-        this.Id == product.Id;        
-    }
-
-    public override int GetHashCode()
-    {
-      return HashCode.Combine(Id, Name, Price, Manufacturer);
-    }    
-    public override string ToString() => $"{Name} {Manufacturer}";
-
+    public int CompareTo(object? obj) => ((Product)obj).Name.CompareTo(this.Name);           
+    public override bool Equals(object? obj) => (obj is Product product) && (this.ToString() == product.ToString());        
+    public string PrintInfo() => $"{Id}: {Name} {Manufacturer} {PrintPrice()}";
+    public string PrintPrice() => string.Format(CultureInfo.CurrentCulture, "{0:c2}", this.Price);
+    public override string ToString() => $"{Name} {Manufacturer}";       
+    public override int GetHashCode() => this.PrintInfo().GetHashCode();
     #endregion
 
     #region Конструкторы    
@@ -68,5 +40,5 @@ namespace ProducstLibrary.Model
     }
 
     #endregion
-  }
+  }  
 }

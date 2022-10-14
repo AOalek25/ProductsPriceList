@@ -10,7 +10,11 @@
     public const string printAllProducts = "5";
     public const string addNewPriceList = "6";
     public const string PrintAllPriceTags = "7";
-    public const string exit = "8";
+    public const string SortByName = "8";
+    public const string SortByPrice = "9";
+    public const string ColumnName = "Name";
+    public const string ColumnPrice = "Price";
+    public const string exit = "10";
   
 
   }

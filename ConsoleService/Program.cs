@@ -28,6 +28,12 @@ do
     case ConsoleConstants.PrintAllPriceTags:
       consoleService.PrintAllPriceTags();
       break;
+    case ConsoleConstants.SortByName:
+      consoleService.Sort();
+      break;
+    case ConsoleConstants.SortByPrice:
+      consoleService.Sort();
+      break;
     case ConsoleConstants.exit:
       return;
     default:

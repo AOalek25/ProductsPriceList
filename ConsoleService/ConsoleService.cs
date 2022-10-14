@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-
+using ExcelService;
 using ProducstLibrary;
 using ProducstLibrary.Exceptions;
 using ProducstLibrary.Model;
@@ -12,12 +12,18 @@ namespace ConsoleService
     public string name;
     public decimal price;
     public string manufacturer;
-    ProductsRepo<Product> repo;
-    ProductsRepo<Product> newRepo;
-
+    ProductsRepo<IProduct> repo;
+    ProductsRepo<IProduct> newRepo;
+    ExcelService<IProduct> excelService;
+    ExcelService<IProduct> newExcelService;
+  
     public ConsolService()
     {
-      repo = new();      
+      repo = new();
+      newRepo = new();      
+      excelService = new();      
+      newExcelService = new();
+
   //    repo.Create(new Product("молоко", "Игра", 10m));
   //    repo.Create(new Product("молоко", "Можга", 10m));
   //    repo.Create(new Product("Хлеб","ХЗ№3", 5m));
@@ -33,7 +39,9 @@ namespace ConsoleService
       Console.WriteLine("5. Распечатать весь прайс-лист");
       Console.WriteLine("6. Добавить новый файл прайс-листа");
       Console.WriteLine("7. Распечатать всe ценники в Excel");
-      Console.WriteLine("8. Выход");
+      Console.WriteLine("8. Отсортировать прайс-лист по названию");
+      Console.WriteLine("9. Отсортировать прайс-лист по цене");
+      Console.WriteLine("10. Выход");
     }
 
     internal static void ShowMessage(string msg) => Console.WriteLine(msg);      
@@ -45,11 +53,11 @@ namespace ConsoleService
       Console.WriteLine("Введите производителя");
       if (ReadStringNotValid(out manufacturer)) return;
       Console.WriteLine("Введите Price");
-      if (!Decimal.TryParse(Console.ReadLine(), out price)) return;
-            
+      if (!Decimal.TryParse(Console.ReadLine(), out price)) return;            
       try
-      {
+      {        
         repo.Create(new Product(name, manufacturer, price));
+        excelService.SaveToFile(repo.GetAll(), ExcelServiceConstants.DefaultPriceListSheetName);
       }
       catch (ProductNotFoundException ex)
       {
@@ -66,7 +74,8 @@ namespace ConsoleService
       if (ReadStringNotValid(out manufacturer)) return;
       try
       {
-        repo.Delete(name, manufacturer);        
+        repo.Delete(name, manufacturer);
+        excelService.SaveToFile(repo.GetAll(), ExcelServiceConstants.DefaultPriceListSheetName);
       }
       catch (ProductNotFoundException ex)
       {
@@ -77,7 +86,8 @@ namespace ConsoleService
 
     internal void PrintAll()
     {
-      foreach (var item in repo.GetAll())
+      var list = excelService.LoadFromFile();
+      foreach (var item in list)
         Console.WriteLine(item.PrintInfo());
     }
 
@@ -111,6 +121,7 @@ namespace ConsoleService
       try
       {
         repo.Update(oldData, new Product(name, manufacturer, price));
+        excelService.SaveToFile(repo.GetAll(), ExcelServiceConstants.DefaultPriceListSheetName);
       }
       catch (ProductNotFoundException ex)
       {
@@ -151,27 +162,50 @@ namespace ConsoleService
       string sourcePath =  Console.ReadLine();
       if (File.Exists(sourcePath))
       {
-        string destPath=  Path.Combine(Environment.CurrentDirectory, "ProductsNewPriceList.xlsx");
-        if (File.Exists(destPath)) File.Delete(destPath);
-        File.Copy(sourcePath, destPath);
-        newRepo = new("ProductsNewPriceList.xlsx");
-        List<Product> result = new();
-        foreach (Product item in repo)
-          foreach (Product itemNewList in newRepo)
-            if (item.Equals(itemNewList) && (item.Price!= itemNewList.Price)) result.Add((Product)itemNewList);
-        foreach (var item in result)
-          Console.WriteLine(item.PrintInfo());
-        repo.Save(result, ProductLibConstants.DefaultReportExcelSheetName);
-        Console.WriteLine("отчет сохранен");
+        string destPath=  Path.Combine(Environment.CurrentDirectory, "ProductsNewPriceList.xlsx");        
+        File.Copy(sourcePath, destPath, true);
+        newExcelService = new("ProductsNewPriceList.xlsx");        
       }
       else Console.WriteLine("Файл не найден");
     }
 
-    internal void PrintAllPriceTags ()
+    internal void GenerateReportChangedPrices() 
     {
-      repo.PrintAllPriceTags();
+      List<IProduct> result = new();
+      List<IProduct> products = excelService.LoadFromFile();
+      List<IProduct> newproducts = excelService.LoadFromFile("ProductsNewPriceList.xlsx");
+      foreach (Product item in products)
+        foreach (Product itemNewList in newproducts)
+          if (item.Equals(itemNewList) && (item.Price != itemNewList.Price)) result.Add((Product)itemNewList);
+      foreach (var item in result)
+        Console.WriteLine(item.PrintInfo());
+      excelService.SaveToFile(result, ExcelServiceConstants.DefaultReportExcelSheetName);      
+      Console.WriteLine("отчет сохранен");
     }
 
+    internal void PrintAllPriceTags ()
+    {
+      excelService.PrintAllPriceTags();
+    }
 
+    internal void Sort()
+    {
+      IProduct temp;
+      List<IProduct> l = repo.GetAll().ToList();
+      for (int i = 0; i < repo.GetAll().Count() - 1; i++)
+      {
+        for (int j = i + 1; j < repo.GetAll().Count(); j++)
+        {          
+          if (l[i].CompareTo(l[j]) >0) 
+          {
+            temp = l[i];
+            l[i] = l[j];
+            l[j] = temp;
+          }
+        }
+      }
+      excelService.SaveToFile(l, ExcelServiceConstants.DefaultReportExcelSheetName);
+      excelService.LoadFromFile();
+    }
   }
 }
