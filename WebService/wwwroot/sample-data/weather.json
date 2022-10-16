@@ -1,27 +1,23 @@
 ﻿[
   {
-    "date": "2018-05-06",
-    "temperatureC": 1,
-    "summary": "Freezing"
+    "Id": "25012e7d-690f-4267-b11f-721a4fdd5b72",
+    "TypeName": "ProducstLibrary.Model.Bread, ProducstLibrary",
+    "Name": "дарницкий",
+    "Manufacturer": "хз3",
+    "Prcie": 2.50
   },
   {
-    "date": "2018-05-07",
-    "temperatureC": 14,
-    "summary": "Bracing"
+    "Id": "877d51d2-a908-453b-a033-0b8d9707c147",
+    "TypeName": "ProducstLibrary.Model.Milk, ProducstLibrary",
+    "Name": "молоко2",
+    "Manufacturer": "игра",
+    "Prcie": 2.60
   },
   {
-    "date": "2018-05-08",
-    "temperatureC": -13,
-    "summary": "Freezing"
-  },
-  {
-    "date": "2018-05-09",
-    "temperatureC": -16,
-    "summary": "Balmy"
-  },
-  {
-    "date": "2018-05-10",
-    "temperatureC": -2,
-    "summary": "Chilly"
+    "Id": "b8a8f59e-b449-42b1-820f-e1f453b44bf0",
+    "TypeName": "ProducstLibrary.Model.Milk, ProducstLibrary",
+    "Name": "молоко3",
+    "Manufacturer": "игра",
+    "Prcie": 2.40
   }
 ]

@@ -20,7 +20,8 @@ namespace ExcelService
     {
       List<T> items = new List<T>();
       ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-      string ExcelFilePath = Path.Combine(Environment.CurrentDirectory, ExcelFileName);
+      //string ExcelFilePath = Path.Combine(Environment.CurrentDirectory, ExcelFileName);
+      string ExcelFilePath = Path.Combine("../../../../Data/", ExcelFileName);
       this.AddFileAndSheetsIfNotExists();
       using (var excelPackage = new ExcelPackage(ExcelFilePath))
       {

@@ -1,0 +1,58 @@
+﻿@page "/pricelist"
+@using ExcelService
+@using ProducstLibrary
+@using ProducstLibrary.Model
+@inject HttpClient Http
+
+<PageTitle>Прайс-лист продуктов</PageTitle>
+
+<h1>Прайс-лист продуктов</h1>
+
+<p></p>
+
+@if (repo == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>TypeName</th>
+                <th>Name</th>
+                <th>Manufacturer</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in list)
+            {
+                <tr>
+                    <td>@product.Id</td>
+                    <td>@product.TypeName</td>
+                    <td>@product.Name</td>
+                    <td>@product.Manufacturer</td>
+                    <td>@product.Price</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+  ProductsRepo<IProduct> repo;
+  ExcelService<IProduct> excelService;
+  List<IProduct> list;
+
+  protected override Task OnInitializedAsync()
+  {
+    repo = new();
+    excelService = new();
+    foreach (var item in excelService.LoadFromFile())
+      repo.Create(item);
+    list = repo.GetAll().ToList();
+    return Task.Delay(0);
+  }
+}
