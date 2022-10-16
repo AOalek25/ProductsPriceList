@@ -1,65 +1,58 @@
 ﻿using NetBarcode;
 using OfficeOpenXml;
 using System.Globalization;
+using Type = System.Type;
 
 namespace ExcelService
 {
-  public class ExcelService<T> where T: notnull
+  public class ExcelService<T> where T: notnull, ProducstLibrary.Model.IProduct
   {
-    #region Поля и свойства.
-    private string ExcelFilePath;
-    #endregion
-
     #region Конструкторы.
-    public ExcelService (string ExcelFileName= ExcelServiceConstants.DefaultExcelFileName)
+    public ExcelService ()
     {
-      ExcelFilePath = Path.Combine(Environment.CurrentDirectory, ExcelFileName);
-      if (!File.Exists(ExcelFilePath))
-      {
-        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-        using (var excelPackage = new ExcelPackage(ExcelFilePath))
-        {
-          excelPackage.Workbook.Worksheets.Add(ExcelServiceConstants.DefaultPriceListSheetName);
-          excelPackage.Workbook.Worksheets.Add(ExcelServiceConstants.DefaultPriceTagsSheetName);
-          excelPackage.Workbook.Worksheets.Add(ExcelServiceConstants.DefaultReportExcelSheetName);
-          excelPackage.Save();
-        }
-      }
+      if (!File.Exists(ExcelServiceConstants.ExcelFilePath))
+        this.AddFileAndSheetsIfNotExists();
     }
     #endregion
 
     #region Методы.
-    public List<T> LoadFromFile(string ExcelFileName = ExcelServiceConstants.DefaultExcelFileName)
+    public IEnumerable<T> LoadFromFile(string ExcelFileName = ExcelServiceConstants.DefaultExcelFileName)
     {
       List<T> items = new List<T>();
       ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-      ExcelFilePath = Path.Combine(Environment.CurrentDirectory, ExcelFileName);
+      string ExcelFilePath = Path.Combine(Environment.CurrentDirectory, ExcelFileName);
+      this.AddFileAndSheetsIfNotExists();
       using (var excelPackage = new ExcelPackage(ExcelFilePath))
       {
         ExcelWorksheet priceListSheet = excelPackage.Workbook.Worksheets[ExcelServiceConstants.DefaultPriceListSheetName];
-        var columnInfo = Enumerable.Range(1, priceListSheet.Dimension.Columns).ToList().Select(n =>
-                new { Index = n, ColumnName = priceListSheet.Cells[1, n].Value.ToString() } );
-        for (int row = 2; row <= priceListSheet.Dimension.Rows; row++)
+        if (priceListSheet.Cells[1, 1].Value != null)
         {
-          T obj = (T)Activator.CreateInstance(typeof(T));
-          foreach (var prop in typeof(T).GetProperties())
+          var columnInfo = Enumerable.Range(1, priceListSheet.Dimension.Columns).ToList().Select(n =>
+                  new { Index = n, ColumnName = priceListSheet.Cells[1, n].Value.ToString() });
+          for (int row = 2; row <= priceListSheet.Dimension.Rows; row++)
           {
-            int col = columnInfo.SingleOrDefault(c => c.ColumnName == prop.Name).Index;
-            var val = priceListSheet.Cells[row, col].Value;
-            var propType = prop.PropertyType;
-            if (propType.Name == "Guid") prop.SetValue(obj, Guid.Parse(val.ToString()));
-            else prop.SetValue(obj, Convert.ChangeType(val, propType));
+            Type type = Type.GetType(priceListSheet.Cells[row, 2].Value.ToString());
+            T obj = (T)Activator.CreateInstance(type);
+            foreach (var prop in typeof(T).GetProperties())
+            {
+              int col = columnInfo.SingleOrDefault(c => c.ColumnName == prop.Name).Index;
+              var val = priceListSheet.Cells[row, col].Value;
+              var propType = prop.PropertyType;
+              if (propType.Name == "Guid") prop.SetValue(obj, Guid.Parse(val.ToString()));
+              else prop.SetValue(obj, Convert.ChangeType(val, propType));
+            }
+            items.Add(obj);
           }
-          items.Add(obj);
         }
       }
       return items;
     }    
 
     public void SaveToFile(IEnumerable<T> items, string sheetName)
-    {
+    {    
       ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-      using (var excelPackage = new ExcelPackage(ExcelFilePath))
+      this.AddFileAndSheetsIfNotExists();
+      using (var excelPackage = new ExcelPackage(ExcelServiceConstants.ExcelFilePath))
       {
         ExcelWorksheet workSheet = excelPackage.Workbook.Worksheets[sheetName];
         workSheet.Cells.Clear();
@@ -69,13 +62,9 @@ namespace ExcelService
         table.AutoFitColumns();
         workSheet.Cells[1, 1, 1, workSheet.Dimension.Columns].Style.Font.Bold = true;
         workSheet.Cells[1, 1, 1, workSheet.Dimension.Columns].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
-        for (int row = 2; row <= workSheet.Dimension.Rows; row++)
-        {
-          using (var range = workSheet.Cells[row, 4])
-          {
-            range.Style.Numberformat.Format = "#,##0.00";
-          }
-        }
+        var priceColumn = Enumerable.Range(1, workSheet.Dimension.Columns).ToList().Select(n =>
+                new { Index = n, ColumnName = workSheet.Cells[1, n].Value.ToString() }).SingleOrDefault(c => c.ColumnName == "Price");
+        workSheet.Cells[1, priceColumn.Index, workSheet.Dimension.Rows, priceColumn.Index].Style.Numberformat.Format = "#,##0.00";        
         try
         {
           excelPackage.Save();
@@ -88,9 +77,10 @@ namespace ExcelService
     }
 
     public void PrintAllPriceTags()
-    {
+    {   
       ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-      using (var excelPackage = new ExcelPackage(ExcelFilePath))
+      this.AddFileAndSheetsIfNotExists();
+      using (var excelPackage = new ExcelPackage(ExcelServiceConstants.ExcelFilePath))
       {
         ExcelWorksheet workSheet = excelPackage.Workbook.Worksheets[ExcelServiceConstants.DefaultPriceTagsSheetName];
         ExcelWorksheet priceListSheet = excelPackage.Workbook.Worksheets[ExcelServiceConstants.DefaultPriceListSheetName];
@@ -101,7 +91,8 @@ namespace ExcelService
         int rowIndex = 1;
         for (int row = 2; row <= priceListSheet.Dimension.Rows; row++)
         {
-          T obj = (T)Activator.CreateInstance(typeof(T));
+          Type type = Type.GetType(priceListSheet.Cells[row, 2].Value.ToString());
+          T obj = (T)Activator.CreateInstance(type);
           foreach (var prop in typeof(T).GetProperties())
           {
             int col = columnInfo.SingleOrDefault(c => c.ColumnName == prop.Name).Index;
@@ -144,6 +135,20 @@ namespace ExcelService
         {
           Console.WriteLine($"Неуспешно, файл недоступен. {ex}");
         }
+      }
+    }
+
+    public void AddFileAndSheetsIfNotExists(string customSheetName="")
+    {
+      ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+      using (var excelPackage = new ExcelPackage(ExcelServiceConstants.ExcelFilePath))
+      {
+        ExcelWorksheet workSheet = excelPackage.Workbook.Worksheets[ExcelServiceConstants.DefaultPriceTagsSheetName];
+        if (workSheet == null) excelPackage.Workbook.Worksheets.Add(ExcelServiceConstants.DefaultPriceTagsSheetName);
+        ExcelWorksheet priceListSheet = excelPackage.Workbook.Worksheets[ExcelServiceConstants.DefaultPriceListSheetName];
+        if (priceListSheet == null) excelPackage.Workbook.Worksheets.Add(ExcelServiceConstants.DefaultPriceListSheetName);
+        if (!string.IsNullOrEmpty(customSheetName)) excelPackage.Workbook.Worksheets.Add(customSheetName);
+        excelPackage.Save();
       }
     }
 

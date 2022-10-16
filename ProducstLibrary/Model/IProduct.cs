@@ -1,11 +1,12 @@
-﻿using ProducstLibrary.Validators;
+﻿using ProducstLibrary.Attributes;
 
-namespace ProducstLibrary
+namespace ProducstLibrary.Model
 {   
   public interface IProduct : IComparable
   {
     #region    
     Guid Id { init; get; }
+    string TypeName { get; init; }
     [NameValidator(2)]
     string Name { get; set; }
     [ManufacturerValidator(2)]
@@ -17,6 +18,7 @@ namespace ProducstLibrary
     string PrintInfo();
 
     string PrintPrice();
+    string PrintType() => string.Empty;
     #endregion
   }
 }

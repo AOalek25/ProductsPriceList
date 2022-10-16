@@ -22,17 +22,20 @@ do
     case ConsoleConstants.printAllProducts:
       consoleService.PrintAll();
       break;
-    case ConsoleConstants.addNewPriceList:
-      consoleService.AddNewPriceList();
+    case ConsoleConstants.GenerateReportChangedPrices:
+      consoleService.GenerateReportChangedPrices();
       break;    
     case ConsoleConstants.PrintAllPriceTags:
       consoleService.PrintAllPriceTags();
       break;
+    case ConsoleConstants.LoadNewPriceList:
+      consoleService.LoadNewPriceList();
+      break;
     case ConsoleConstants.SortByName:
-      consoleService.Sort();
+      consoleService.SortByName();
       break;
     case ConsoleConstants.SortByPrice:
-      consoleService.Sort();
+      consoleService.SortByPrice();
       break;
     case ConsoleConstants.exit:
       return;
