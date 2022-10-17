@@ -8,21 +8,20 @@ namespace ExcelService
   public class ExcelService<T> where T: notnull, ProducstLibrary.Model.IProduct
   {
     #region Конструкторы.
-    public ExcelService ()
+    public ExcelService (string directory, string fileName= ExcelServiceConstants.DefaultExcelFileName)
     {
       if (!File.Exists(ExcelServiceConstants.ExcelFilePath))
-        this.AddFileAndSheetsIfNotExists();
+        this.AddFileAndSheetsIfNotExists(directory: Environment.CurrentDirectory);
     }
     #endregion
 
     #region Методы.
-    public IEnumerable<T> LoadFromFile(string ExcelFileName = ExcelServiceConstants.DefaultExcelFileName)
+    public IEnumerable<T> LoadFromFile(string directory , string excelFileName= ExcelServiceConstants.DefaultExcelFileName)
     {
       List<T> items = new List<T>();
       ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-      //string ExcelFilePath = Path.Combine(Environment.CurrentDirectory, ExcelFileName);
-      string ExcelFilePath = Path.Combine("../../../../Data/", ExcelFileName);
-      this.AddFileAndSheetsIfNotExists();
+      string ExcelFilePath = Path.Combine(directory, excelFileName);      
+      this.AddFileAndSheetsIfNotExists(directory);
       using (var excelPackage = new ExcelPackage(ExcelFilePath))
       {
         ExcelWorksheet priceListSheet = excelPackage.Workbook.Worksheets[ExcelServiceConstants.DefaultPriceListSheetName];
@@ -52,7 +51,7 @@ namespace ExcelService
     public void SaveToFile(IEnumerable<T> items, string sheetName)
     {    
       ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-      this.AddFileAndSheetsIfNotExists();
+      this.AddFileAndSheetsIfNotExists(directory: Environment.CurrentDirectory);
       using (var excelPackage = new ExcelPackage(ExcelServiceConstants.ExcelFilePath))
       {
         ExcelWorksheet workSheet = excelPackage.Workbook.Worksheets[sheetName];
@@ -80,7 +79,7 @@ namespace ExcelService
     public void PrintAllPriceTags()
     {   
       ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-      this.AddFileAndSheetsIfNotExists();
+      this.AddFileAndSheetsIfNotExists(directory: Environment.CurrentDirectory);
       using (var excelPackage = new ExcelPackage(ExcelServiceConstants.ExcelFilePath))
       {
         ExcelWorksheet workSheet = excelPackage.Workbook.Worksheets[ExcelServiceConstants.DefaultPriceTagsSheetName];
@@ -139,10 +138,10 @@ namespace ExcelService
       }
     }
 
-    public void AddFileAndSheetsIfNotExists(string customSheetName="")
+    public void AddFileAndSheetsIfNotExists(string directory, string customSheetName="")
     {
       ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-      using (var excelPackage = new ExcelPackage(ExcelServiceConstants.ExcelFilePath))
+      using (var excelPackage = new ExcelPackage(Path.Combine(directory, ExcelServiceConstants.DefaultExcelFileName)))
       {
         ExcelWorksheet workSheet = excelPackage.Workbook.Worksheets[ExcelServiceConstants.DefaultPriceTagsSheetName];
         if (workSheet == null) excelPackage.Workbook.Worksheets.Add(ExcelServiceConstants.DefaultPriceTagsSheetName);

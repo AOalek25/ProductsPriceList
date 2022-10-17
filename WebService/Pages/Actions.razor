@@ -67,7 +67,7 @@
 
 @code {
     ProductsRepo<IProduct> repo = new(); 
-    ExcelService<IProduct> excelService=new(); 
+  ExcelService<IProduct> excelService = new(Environment.CurrentDirectory);
     public int id;
     public string typeName;
     public string name;

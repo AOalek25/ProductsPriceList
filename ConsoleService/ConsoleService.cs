@@ -20,10 +20,10 @@ namespace ConsoleService
       this.name = "undefined";
       this.manufacturer = "undefined";
       this.repo = new();
-      this.excelService = new();
+      this.excelService = new(Environment.CurrentDirectory);
       try
       {
-        foreach (var item in excelService.LoadFromFile())
+        foreach (var item in excelService.LoadFromFile(Environment.CurrentDirectory))
           repo.Create(item);
       }
       catch (Exception ex)
@@ -99,7 +99,7 @@ namespace ConsoleService
 
     internal void PrintAll()
     {
-      var list = excelService.LoadFromFile();
+      var list = excelService.LoadFromFile(Environment.CurrentDirectory);
       foreach (var item in list)
         Console.WriteLine(item.PrintInfo());
     }
@@ -179,7 +179,7 @@ namespace ConsoleService
         string destPath=  Path.Combine(Environment.CurrentDirectory, fileName);        
         File.Copy(sourcePath, destPath, true);
         repo.Clear();
-        foreach (var item in excelService.LoadFromFile())
+        foreach (var item in excelService.LoadFromFile(Environment.CurrentDirectory))
           repo.Create(item);
       }
       else Console.WriteLine("Файл не найден");
@@ -188,7 +188,7 @@ namespace ConsoleService
     internal void GenerateReportChangedPrices() 
     {
       List<IProduct> comparisonResult = new();
-      List<IProduct> products = excelService.LoadFromFile().ToList();
+      List<IProduct> products = excelService.LoadFromFile(Environment.CurrentDirectory).ToList();
       this.LoadNewPriceList("NewProductsPriceList.xlsx");
       List<IProduct> newProducts = excelService.LoadFromFile("NewProductsPriceList.xlsx").ToList();
       foreach (IProduct product in products)
