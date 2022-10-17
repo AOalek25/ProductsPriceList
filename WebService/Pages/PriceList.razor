@@ -42,14 +42,12 @@ else
 }
 
 @code {
-  ProductsRepo<IProduct> repo;
-  ExcelService<IProduct> excelService;
-  List<IProduct> list;
+  ProductsRepo<IProduct> repo=new();
+  ExcelService<IProduct> excelService=new();
+  List<IProduct> list=new();
 
   protected override Task OnInitializedAsync()
-  {
-    repo = new();
-    excelService = new();
+  {    
     foreach (var item in excelService.LoadFromFile())
       repo.Create(item);
     list = repo.GetAll().ToList();
