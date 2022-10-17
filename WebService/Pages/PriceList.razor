@@ -1,8 +1,10 @@
 ﻿@page "/pricelist"
 @using ExcelService
 @using ProducstLibrary
+@using ProducstLibrary.Exceptions
 @using ProducstLibrary.Model
-@inject HttpClient Http
+
+@inject ProductsRepo<IProduct> repo
 
 <PageTitle>Прайс-лист продуктов</PageTitle>
 
@@ -12,45 +14,106 @@
 
 @if (repo == null)
 {
-    <p><em>Loading...</em></p>
+  <p><em>Loading...</em></p>
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>TypeName</th>
-                <th>Name</th>
-                <th>Manufacturer</th>
-                <th>Price</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var product in list)
-            {
-                <tr>
-                    <td>@product.Id</td>
-                    <td>@product.TypeName</td>
-                    <td>@product.Name</td>
-                    <td>@product.Manufacturer</td>
-                    <td>@product.Price</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+  <button class="btn btn-primary" @onclick="Read">Read</button>
+  <button class="btn btn-primary" @onclick="Update">Update</button>
+  <button class="btn btn-primary" @onclick="Add">Create</button>
+  <button class="btn btn-primary" @onclick="Delete">Delete</button>
+  <div class="row">
+    <div class="col">
+      <input class="form-control" placeholder="Enter Type" @bind="typeName"></input>
+    </div>
+    <div class="col">
+      <input class="form-control" placeholder="Enter Name" @bind="name"></input>
+    </div>
+    <div class="col">
+      <input class="form-control" placeholder="Enter Manufacturer" @bind="manufacturer"></input>
+    </div>
+    <div class="col">
+      <input class="form-control" placeholder="Enter Price" @bind="price"></input>
+    </div>
+  </div>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Идентификатор</th>
+        <th>тип</th>
+        <th>Наименование</th>
+        <th>Производитель</th>
+        <th>Цена</th>
+      </tr>
+    </thead>
+    <tbody>
+      @foreach (var product in list)
+      {
+        <tr>
+          <td>@product.PrintId()</td>
+          <td>@product.PrintType()</td>
+          <td>@product.Name</td>
+          <td>@product.Manufacturer</td>
+          <td>@product.PrintPrice()</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+    
 }
 
 @code {
-  ProductsRepo<IProduct> repo=new();
+  public Guid id;
+  public string typeName = "";
+  public string name = "";
+  public decimal price;
+  public string manufacturer = "";
   ExcelService<IProduct> excelService = new("");
-  List<IProduct> list=new();
+  List<IProduct> list = new();
 
   protected override Task OnInitializedAsync()
-  {    
-    foreach (var item in excelService.LoadFromFile(""))
+  {
+    foreach (var item in excelService.LoadFromFile("Data/"))
       repo.Create(item);
     list = repo.GetAll().ToList();
     return Task.Delay(0);
+  }
+
+  internal void Read()
+  { }
+
+  internal void Update()
+  { }
+
+  internal void Add()
+  {
+    if (ReadStringNotValid(typeName)) { throw new ArgumentException();   return; }
+    if (ReadStringNotValid(name)) { throw new ArgumentException(); return; }
+    if (ReadStringNotValid(manufacturer)) { throw new ArgumentException(); return; }
+    foreach (var registeredType in repo.GetRegisteredTypes())
+      if (this.typeName.Equals(registeredType.Key, StringComparison.CurrentCultureIgnoreCase))
+      {
+        try
+        {
+          var obj = Activator.CreateInstance(registeredType.Value, new object[] { name, manufacturer, price });
+          repo.Create((IProduct)obj);
+          excelService.SaveToFile(repo.GetAll(), "data/",  ExcelServiceConstants.DefaultPriceListSheetName);          
+        }
+        catch (ProductNotFoundException ex)
+        {
+          
+        }
+      }    
+  }
+
+  internal void Delete()
+  { }
+
+  static bool ReadStringNotValid(string param)
+  {    
+    if (string.IsNullOrEmpty(param))
+      return true;
+    else return false;
   }
 }

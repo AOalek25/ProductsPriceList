@@ -67,7 +67,7 @@ namespace ConsoleService
           {
             var obj = Activator.CreateInstance(registeredType.Value, new object[] { name, manufacturer, price });          
             repo.Create((IProduct)obj);
-            excelService.SaveToFile(repo.GetAll(), ExcelServiceConstants.DefaultPriceListSheetName);
+            excelService.SaveToFile(repo.GetAll(), Environment.CurrentDirectory, ExcelServiceConstants.DefaultPriceListSheetName);
             return;
           }
           catch (ProductNotFoundException ex)
@@ -88,7 +88,7 @@ namespace ConsoleService
       try
       {
         repo.Delete(name, manufacturer);
-        excelService.SaveToFile(repo.GetAll(), ExcelServiceConstants.DefaultPriceListSheetName);
+        excelService.SaveToFile(repo.GetAll(), Environment.CurrentDirectory, ExcelServiceConstants.DefaultPriceListSheetName);
       }
       catch (ProductNotFoundException ex)
       {
@@ -134,7 +134,7 @@ namespace ConsoleService
       try
       {
         repo.Update(oldData, new Bread(name, manufacturer, price));
-        excelService.SaveToFile(repo.GetAll(), ExcelServiceConstants.DefaultPriceListSheetName);
+        excelService.SaveToFile(repo.GetAll(), Environment.CurrentDirectory, ExcelServiceConstants.DefaultPriceListSheetName);
       }
       catch (ProductNotFoundException ex)
       {
@@ -170,8 +170,7 @@ namespace ConsoleService
     }
     
     internal void LoadNewPriceList(string fileName = "ProductsPriceList.xlsx")
-    {
-      ExcelService<IProduct> newExcelService;
+    {       
       Console.WriteLine("Веедите путь до нового файла прайс-листа");
       string? sourcePath = Console.ReadLine();
       if (File.Exists(sourcePath))
@@ -197,7 +196,7 @@ namespace ConsoleService
             comparisonResult.Add((IProduct)newProduct);
       foreach (var item in comparisonResult)
         Console.WriteLine(item.PrintInfo());
-      excelService.SaveToFile(comparisonResult, ExcelServiceConstants.DefaultReportExcelSheetName);      
+      excelService.SaveToFile(comparisonResult, Environment.CurrentDirectory, ExcelServiceConstants.DefaultReportExcelSheetName);      
       Console.WriteLine("отчет сохранен");
     }
 
@@ -208,11 +207,11 @@ namespace ConsoleService
 
     internal void SortByName()
     {        
-      excelService.SaveToFile(repo.SortedByName(), ExcelServiceConstants.DefaultPriceListSheetName);    
+      excelService.SaveToFile(repo.SortedByName(), Environment.CurrentDirectory, ExcelServiceConstants.DefaultPriceListSheetName);    
     }
     internal void SortByPrice()
     {      
-      excelService.SaveToFile(repo.SortedtByPrice(), ExcelServiceConstants.DefaultPriceListSheetName);   
+      excelService.SaveToFile(repo.SortedtByPrice(), Environment.CurrentDirectory, ExcelServiceConstants.DefaultPriceListSheetName);   
     }
 
   }

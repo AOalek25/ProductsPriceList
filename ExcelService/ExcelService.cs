@@ -48,11 +48,11 @@ namespace ExcelService
       return items;
     }    
 
-    public void SaveToFile(IEnumerable<T> items, string sheetName)
+    public void SaveToFile(IEnumerable<T> items, string directory, string sheetName)
     {    
       ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-      this.AddFileAndSheetsIfNotExists(directory: Environment.CurrentDirectory);
-      using (var excelPackage = new ExcelPackage(ExcelServiceConstants.ExcelFilePath))
+      this.AddFileAndSheetsIfNotExists(directory: directory);
+      using (var excelPackage = new ExcelPackage(Path.Combine(directory, ExcelServiceConstants.DefaultExcelFileName)))
       {
         ExcelWorksheet workSheet = excelPackage.Workbook.Worksheets[sheetName];
         workSheet.Cells.Clear();

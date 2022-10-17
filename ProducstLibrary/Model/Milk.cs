@@ -24,8 +24,9 @@ namespace ProducstLibrary.Model
       if (obj is IProduct product) return product.Name.CompareTo(this.Name);
       else return 1;      
     }
-    public string PrintInfo() => $"{Id}: {Name} {FatContent} {Manufacturer} {PrintPrice()}";  
+    public string PrintInfo() => $"{PrintId()} {PrintType()} {Name} {FatContent} {Manufacturer} {PrintPrice()}";  
     public string PrintPrice() => string.Format(CultureInfo.CurrentCulture, "{0:c2}", this.Price);
+    public string PrintId() => this.Id.ToString("N");
 
     public string PrintType() => "Молоко";    
     #endregion
