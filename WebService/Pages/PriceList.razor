@@ -43,12 +43,12 @@ else
 
 @code {
   ProductsRepo<IProduct> repo=new();
-  ExcelService<IProduct> excelService = new("C:/Users/alek2/source/repos/PriceList/WebService/wwwroot");
+  ExcelService<IProduct> excelService = new("");
   List<IProduct> list=new();
 
   protected override Task OnInitializedAsync()
   {    
-    foreach (var item in excelService.LoadFromFile("C:/Users/alek2/source/repos/PriceList/WebService/wwwroot"))
+    foreach (var item in excelService.LoadFromFile(""))
       repo.Create(item);
     list = repo.GetAll().ToList();
     return Task.Delay(0);
