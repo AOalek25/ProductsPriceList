@@ -10,18 +10,18 @@
 
 <h1>Прайс-лист продуктов</h1>
 
-<p></p>
-
 @if (repo == null)
 {
   <p><em>Loading...</em></p>
 }
 else
 {
-  <button class="btn btn-primary" @onclick="Read">Read</button>
-  <button class="btn btn-primary" @onclick="Update">Update</button>
+  <button class="btn btn-primary"  @onclick="Read">Find</button>  
   <button class="btn btn-primary" @onclick="Add">Create</button>
   <button class="btn btn-primary" @onclick="Delete">Delete</button>
+  <button class="btn btn-primary" @onclick="PrintAll">PrintAll</button>
+  <button class="btn btn-primary" @onclick="SortByName">SortByName</button>
+  <button class="btn btn-primary" @onclick="SortByPrice">SortByPrice</button>
   <div class="row">
     <div class="col">
       <input class="form-control" placeholder="Enter Type" @bind="typeName"></input>
@@ -74,6 +74,7 @@ else
 
   protected override Task OnInitializedAsync()
   {
+    repo.Clear();
     foreach (var item in excelService.LoadFromFile("Data/"))
       repo.Create(item);
     list = repo.GetAll().ToList();
@@ -81,10 +82,23 @@ else
   }
 
   internal void Read()
-  { }
+  { 
+    if (ReadStringNotValid(name)) { throw new ArgumentException(); return; }
+    if (ReadStringNotValid(manufacturer)) { throw new ArgumentException(); return; }
+    try
+    {
+      var item = repo.Read(name, manufacturer);
+      list.Clear();
+      list.Add(item);
+    }
+    catch (ProductNotFoundException ex)
+    {   }
+  }
 
-  internal void Update()
-  { }
+  internal void PrintAll()
+  { 
+    OnInitializedAsync();
+  }
 
   internal void Add()
   {
@@ -98,22 +112,44 @@ else
         {
           var obj = Activator.CreateInstance(registeredType.Value, new object[] { name, manufacturer, price });
           repo.Create((IProduct)obj);
-          excelService.SaveToFile(repo.GetAll(), "data/",  ExcelServiceConstants.DefaultPriceListSheetName);          
+          excelService.SaveToFile(repo.GetAll(), "Data/",  ExcelServiceConstants.DefaultPriceListSheetName);          
         }
         catch (ProductNotFoundException ex)
-        {
-          
-        }
-      }    
+        { }
+      }
+    OnInitializedAsync();
   }
 
   internal void Delete()
-  { }
+  { 
+    if (ReadStringNotValid(name)) { throw new ArgumentException(); return; }
+    if (ReadStringNotValid(manufacturer)) { throw new ArgumentException(); return; }
+    try
+    {
+      repo.Delete(name, manufacturer);
+      excelService.SaveToFile(repo.GetAll(), "Data/", ExcelServiceConstants.DefaultPriceListSheetName);
+    }
+    catch (ProductNotFoundException ex)
+    {   }
+    OnInitializedAsync();
+  }
 
   static bool ReadStringNotValid(string param)
   {    
     if (string.IsNullOrEmpty(param))
       return true;
     else return false;
+  }
+
+  internal void SortByName()
+  {
+    excelService.SaveToFile(repo.SortedByName(), "Data/", ExcelServiceConstants.DefaultPriceListSheetName);
+    OnInitializedAsync();
+  }
+
+  internal void SortByPrice()
+  {
+    excelService.SaveToFile(repo.SortedtByPrice(), "Data/", ExcelServiceConstants.DefaultPriceListSheetName);
+    OnInitializedAsync();
   }
 }

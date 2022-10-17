@@ -4,8 +4,6 @@
 @using ProducstLibrary.Exceptions
 @using ProducstLibrary.Model
 
-@inject ProductsRepo<IProduct> repo
-
 <PageTitle>Actions</PageTitle>
 
 <h1>Что хотите сделать?</h1>
@@ -68,7 +66,7 @@
 
 
 @code {
-  repo = new();
+  ProductsRepo<IProduct> repo = new();
   ExcelService<IProduct> excelService = new(Environment.CurrentDirectory);
   public Guid id;
   public string typeName="";
@@ -104,12 +102,12 @@
 
   internal void SortByName()
   {
-    excelService.SaveToFile(repo.SortedByName(), ExcelServiceConstants.DefaultPriceListSheetName);
+    excelService.SaveToFile(repo.SortedByName(), "Data/", ExcelServiceConstants.DefaultPriceListSheetName);
   }
 
   internal void SortByPrice()
   {
-    excelService.SaveToFile(repo.SortedtByPrice(), ExcelServiceConstants.DefaultPriceListSheetName);
+    excelService.SaveToFile(repo.SortedtByPrice(), "Data/", ExcelServiceConstants.DefaultPriceListSheetName);
   }
 
   internal void Exit()
