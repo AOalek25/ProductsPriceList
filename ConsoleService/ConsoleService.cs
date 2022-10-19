@@ -202,7 +202,7 @@ namespace ConsoleService
 
     internal void PrintAllPriceTags ()
     {
-      excelService.PrintAllPriceTags();
+      excelService.PrintAllPriceTags(Environment.CurrentDirectory, ExcelServiceConstants.DefaultPriceListFileName);
     }
 
     internal void SortByName()

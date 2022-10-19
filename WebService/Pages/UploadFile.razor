@@ -1,0 +1,75 @@
+﻿@using ExcelService
+@using ProducstLibrary
+@using ProducstLibrary.Exceptions
+@using ProducstLibrary.Model
+
+@inject NavigationManager NavigationManager
+@inject ProductsRepo<IProduct> repo
+
+<div class="modal @ModalClass" tabindex="-1" role="dialog" style="display:@ModalDisplay">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Загрузка файла</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <InputFile OnChange="@SingleUpload" />      
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="@SaveNewFile">Подтвердить</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="() => Close()">Отмена</button>                                 
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (ShowBackdrop)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+  public Guid Guid = Guid.NewGuid();
+  public string ModalDisplay = "none;";
+  public string ModalClass = "";
+  public bool ShowBackdrop = false;
+  ExcelService<IProduct> excelService = new("Data/");
+
+  public void Open()
+  {
+    ModalDisplay = "block;";
+    ModalClass = "Show";
+    ShowBackdrop = true;
+    StateHasChanged();
+  }
+
+  public void Close()
+  {
+    ModalDisplay = "none";
+    ModalClass = "";
+    ShowBackdrop = false;
+    StateHasChanged();    
+  }
+
+  private async Task SingleUpload(InputFileChangeEventArgs e)
+  {
+    MemoryStream ms = new MemoryStream();
+    await e.File.OpenReadStream().CopyToAsync(ms);
+    var bytes = ms.ToArray();
+    var fs= File.Create("Data/NewProductsPriceList.xlsx");    
+    fs.Write(bytes, 0, bytes.Length);
+    fs.Close();
+  }
+
+  private void SaveNewFile()
+  {
+    File.Copy("Data/NewProductsPriceList.xlsx", "Data/ProductsPriceList.xlsx", true);
+    File.Delete("Data/NewProductsPriceList.xlsx");
+    repo.Clear();
+    foreach (var item in excelService.LoadFromFile("Data/"))
+      repo.Create(item);
+    this.NavigationManager.NavigateTo("/pricelist", true);
+  }
+    
+}

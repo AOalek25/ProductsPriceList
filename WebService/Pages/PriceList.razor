@@ -5,8 +5,13 @@
 @using ProducstLibrary.Model
 
 @inject ProductsRepo<IProduct> repo
+@inject IJSRuntime JS
 
 <PageTitle>Прайс-лист продуктов</PageTitle>
+
+<head>
+  <meta http-equiv="refresh" content="600">
+</head>
 
 <h1>Прайс-лист продуктов</h1>
 
@@ -17,14 +22,18 @@
 else
 {  
    <button class="btn btn-primary" @onclick="Read">Find</button>  
-   <a href="inputdialog" class="btn btn-primary">Create</a>  
-   <button class="btn btn-primary" @onclick="Delete">Delete</button>
+   <a href="inputdialog" class="btn btn-primary">Create</a>
+
+  <a id="exportFile" class="btn btn-primary" href="Data/" download="ProductPriceList.xlsx"
+   role="button" target="=_top">Export File</a>
+
+  <button class="btn btn-primary" @onclick="Delete">Delete</button>
    <button class="btn btn-primary" @onclick="PrintAll">PrintAll</button>
    <button class="btn btn-primary" @onclick="SortByName">SortByName</button>
    <button class="btn btn-primary" @onclick="SortByPrice">SortByPrice</button>
    <p></p>
-   <WebService.Pages.Modal @ref="Modal"></WebService.Pages.Modal>   
-   <button class="btn btn-primary" @onclick="() => Modal.Open()">Load new file</button>
+  <WebService.Pages.UploadFile @ref="Modal"></WebService.Pages.UploadFile>
+  <button class="btn btn-primary" @onclick="() => Modal.Open()">Load new file</button>
    <button class="btn btn-primary" @onclick="GenerateReportChangedPrices">Show changed prices</button>
    <button class="btn btn-primary" @onclick="PrintPricetags">Price tags</button>
      
@@ -51,18 +60,21 @@ else
       }
     </tbody>
   </table>
+
+  <a href="Data/ProductsPriceList.xlsx" download>Save</a>
+  <a href="Data/" download="ProductsPriceList.xlsx">Save</a>
     
 }
 
 @code {
-  private WebService.Pages.Modal Modal { get; set; }
+  private WebService.Pages.UploadFile Modal { get; set; }
 
   public Guid id;
   public string typeName = "";
   public string name = "";
   public decimal price;
   public string manufacturer = "";
-  ExcelService<IProduct> excelService = new("");
+  ExcelService<IProduct> excelService = new("Data/");
   List<IProduct> list = new();
 
   protected override Task OnInitializedAsync()
@@ -148,7 +160,7 @@ else
 
   internal void LoadNewFile()
   {
-
+    OnInitializedAsync();
   }
 
   internal void GenerateReportChangedPrices()
@@ -156,16 +168,20 @@ else
 
   }
 
-  internal void PrintPricetags()
+  internal async Task PrintPricetags()
   {
-    
-  }
+    excelService.PrintAllPriceTags("Data/", "PriceTags.xlsx");
+    var fileStream = GetFileStream();
+    var fileName = "log.bin";
 
-  private void LoadFiles(InputFileChangeEventArgs e)
-    {
-         //await using FileStream fs = new(path, FileMode.Create);
-        // await browserFile.OpenReadStream().CopyToAsync(fs);
-        
-    }
+    using var streamRef = new DotNetStreamReference(stream: fileStream);
+
+    await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+   }
+    
+  private Stream GetFileStream()
+  {
+    return File.OpenRead(@"Data/ProductsPriceList.xlsx");
+  }
 
 }
