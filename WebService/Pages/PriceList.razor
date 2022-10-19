@@ -15,28 +15,19 @@
   <p><em>Loading...</em></p>
 }
 else
-{
-  <button class="btn btn-primary"  @onclick="Read">Find</button>  
-  <button class="btn btn-primary" @onclick="Add">Create</button>
-  <button class="btn btn-primary" @onclick="Delete">Delete</button>
-  <button class="btn btn-primary" @onclick="PrintAll">PrintAll</button>
-  <button class="btn btn-primary" @onclick="SortByName">SortByName</button>
-  <button class="btn btn-primary" @onclick="SortByPrice">SortByPrice</button>
-  <div class="row">
-    <div class="col">
-      <input class="form-control" placeholder="Enter Type" @bind="typeName"></input>
-    </div>
-    <div class="col">
-      <input class="form-control" placeholder="Enter Name" @bind="name"></input>
-    </div>
-    <div class="col">
-      <input class="form-control" placeholder="Enter Manufacturer" @bind="manufacturer"></input>
-    </div>
-    <div class="col">
-      <input class="form-control" placeholder="Enter Price" @bind="price"></input>
-    </div>
-  </div>
-
+{  
+   <button class="btn btn-primary" @onclick="Read">Find</button>  
+   <a href="inputdialog" class="btn btn-primary">Create</a>  
+   <button class="btn btn-primary" @onclick="Delete">Delete</button>
+   <button class="btn btn-primary" @onclick="PrintAll">PrintAll</button>
+   <button class="btn btn-primary" @onclick="SortByName">SortByName</button>
+   <button class="btn btn-primary" @onclick="SortByPrice">SortByPrice</button>
+   <p></p>
+   <WebService.Pages.Modal @ref="Modal"></WebService.Pages.Modal>   
+   <button class="btn btn-primary" @onclick="() => Modal.Open()">Load new file</button>
+   <button class="btn btn-primary" @onclick="GenerateReportChangedPrices">Show changed prices</button>
+   <button class="btn btn-primary" @onclick="PrintPricetags">Price tags</button>
+     
   <table class="table">
     <thead>
       <tr>
@@ -64,6 +55,8 @@ else
 }
 
 @code {
+  private WebService.Pages.Modal Modal { get; set; }
+
   public Guid id;
   public string typeName = "";
   public string name = "";
@@ -152,4 +145,27 @@ else
     excelService.SaveToFile(repo.SortedtByPrice(), "Data/", ExcelServiceConstants.DefaultPriceListSheetName);
     OnInitializedAsync();
   }
+
+  internal void LoadNewFile()
+  {
+
+  }
+
+  internal void GenerateReportChangedPrices()
+  {
+
+  }
+
+  internal void PrintPricetags()
+  {
+    
+  }
+
+  private void LoadFiles(InputFileChangeEventArgs e)
+    {
+         //await using FileStream fs = new(path, FileMode.Create);
+        // await browserFile.OpenReadStream().CopyToAsync(fs);
+        
+    }
+
 }

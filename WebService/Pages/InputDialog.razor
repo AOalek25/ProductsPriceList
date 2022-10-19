@@ -1,0 +1,37 @@
+﻿@page "/inputdialog"
+@using ExcelService
+@using ProducstLibrary
+@using ProducstLibrary.Exceptions
+@using ProducstLibrary.Model
+
+@inject ProductsRepo<IProduct> repo
+
+<h3>Введите данные.</h3>
+
+<div class="row">
+    <div class="col">
+      <input class="form-control" placeholder="Enter Type" @bind="typeName"></input>
+    </div>
+    <div class="col">
+      <input class="form-control" placeholder="Enter Name" @bind="name"></input>
+    </div>
+    <div class="col">
+      <input class="form-control" placeholder="Enter Manufacturer" @bind="manufacturer"></input>
+    </div>
+    <div class="col">
+      <input class="form-control" placeholder="Enter Price" @bind="price"></input>
+    </div>
+ </div>
+
+ <a href="pricelist" class="btn btn-primary">Ok</a>
+ <a href="pricelist" class="btn btn-primary">Cancel</a> 
+
+@code {
+  public Guid id;
+  public string typeName = "";
+  public string name = "";
+  public decimal price;
+  public string manufacturer = "";
+
+
+}
