@@ -26,7 +26,7 @@ do
       consoleService.GenerateReportChangedPrices();
       break;    
     case ConsoleConstants.PrintAllPriceTags:
-      consoleService.PrintAllPriceTags();
+      consoleService.PrintAllPriceTagsAsync();
       break;
     case ConsoleConstants.LoadNewPriceList:
       consoleService.LoadNewPriceList();

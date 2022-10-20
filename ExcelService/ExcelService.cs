@@ -49,13 +49,13 @@ namespace ExcelService
       return items;
     }    
 
-    public void SaveToFile(IEnumerable<T> items, string directory, string sheetName)
+    public async Task SaveToFileAsync (IEnumerable<T> items, string directory, string fileName)
     {    
       ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
       this.AddFileAndSheetsIfNotExists(directory, ExcelServiceConstants.DefaultPriceListFileName, ExcelServiceConstants.DefaultPriceTagsFileName, ExcelServiceConstants.DefaultReportFileName);
-      using (var excelPackage = new ExcelPackage(Path.Combine(directory, ExcelServiceConstants.DefaultPriceListFileName)))
+      using (var excelPackage = new ExcelPackage(Path.Combine(directory, fileName)))
       {
-        ExcelWorksheet workSheet = excelPackage.Workbook.Worksheets[sheetName];
+        ExcelWorksheet workSheet = excelPackage.Workbook.Worksheets.FirstOrDefault();
         workSheet.Cells.Clear();
         workSheet.Cells["A1"].LoadFromCollection(items, true);
         var table = workSheet.Cells[1, 1, workSheet.Dimension.Rows, workSheet.Dimension.Columns];
@@ -71,13 +71,12 @@ namespace ExcelService
           excelPackage.Save();
         }
         catch (InvalidOperationException ex)
-        {
-          Console.WriteLine($"Неуспешно, файл недоступен. {ex}");
+        {          
         }
-      }
+      }      
     }
 
-    public void PrintAllPriceTags(string directory, string fileName)
+    public async Task PrintAllPriceTagsAsync(string directory, string fileName)
     {   
       ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
       this.AddFileAndSheetsIfNotExists(directory, ExcelServiceConstants.DefaultPriceListFileName, ExcelServiceConstants.DefaultPriceTagsFileName, ExcelServiceConstants.DefaultReportFileName);
@@ -136,10 +135,10 @@ namespace ExcelService
           excel2Package.Save();
         }
         catch (InvalidOperationException ex)
-        {
-          Console.WriteLine($"Неуспешно, файл недоступен. {ex}");
-        }
+        {          
+        }        
       }
+      await Task.CompletedTask;
     }
 
     public void AddFileAndSheetsIfNotExists(string directory, string excelFileName, string priceTagsFileName, string reportfileName)
@@ -153,8 +152,8 @@ namespace ExcelService
       }
       using (var excelPackage = new ExcelPackage(Path.Combine(directory, priceTagsFileName)))
       {
-        ExcelWorksheet pricetagsSheet = excelPackage.Workbook.Worksheets[ExcelServiceConstants.DefaultPriceTagsFileName];
-        if (pricetagsSheet == null) excelPackage.Workbook.Worksheets.Add(ExcelServiceConstants.DefaultPriceTagsFileName);
+        ExcelWorksheet pricetagsSheet = excelPackage.Workbook.Worksheets[ExcelServiceConstants.DefaultPriceTagsSheetName];
+        if (pricetagsSheet == null) excelPackage.Workbook.Worksheets.Add(ExcelServiceConstants.DefaultPriceTagsSheetName);
         excelPackage.Save();
       }
       using (var excelPackage = new ExcelPackage(Path.Combine(directory, reportfileName)))
