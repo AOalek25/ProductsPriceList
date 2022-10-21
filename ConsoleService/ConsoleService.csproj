@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ExcelService\ExcelService.csproj" />
-    <ProjectReference Include="..\ProducstLibrary\ProducstLibrary.csproj" />
+    <ProjectReference Include="..\ProductLibrary\ProductLibrary.csproj" />
   </ItemGroup>
 
 </Project>

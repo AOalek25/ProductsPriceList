@@ -1,106 +1,81 @@
-﻿using System.Reflection;
-
-using ProducstLibrary.Exceptions;
-using ProducstLibrary.Model;
-using ProducstLibrary.Attributes;
+﻿using ProductLibrary.Exceptions;
+using ProductLibrary.Model;
+using ProductLibrary.Attributes;
 using NaturalSort.Extension;
+using System.Text;
 
-namespace ProducstLibrary
+namespace ProductLibrary
 {
-  public class ProductsRepo<T> where T: notnull, IProduct
+  public class ProductRepo
   {
-    #region Поля и свойства
-    const string _alreadyExistMsg = "Такой продукт уже есть в списке";
-    const string _notFoundMsg = "Продукт с таким именем и фамилией не найден";    
-    private List<T> list;    
-    private Dictionary<string, Type> dictTypes;    
+    #region Поля и свойства    
+    private List<Product> list;          
     #endregion
 
     #region Методы
-    public void Create(T newItem)
+    public void Create(Product newItem)
     {
-      ProductsRepo<T>.Validate(newItem);
+      Validate(newItem);
+      foreach (Product item in list)
+        if (item.Equals(newItem)) throw new ProductAlreadyExistException();
+      list.Add(newItem);
       
-      foreach (IProduct item in list)       
-        if (item.Equals(newItem)) throw new ProductAlreadyExistException(_alreadyExistMsg);
-      list.Add(newItem);      
     }
 
-    public T Read(string name, string manufacturer)
+    public Product Read(string name, string manufacturer)
     {
       string itemToFind = $"{name} {manufacturer}";
-      foreach (IProduct item in list)        
-        if (string.Compare(item.ToString(), itemToFind, StringComparison.CurrentCultureIgnoreCase) == 0)
-          return (T)item;
-      throw new ProductNotFoundException(_notFoundMsg);
+      foreach (Product item in list)        
+        if (string.Compare(item.ToString(), itemToFind, StringComparison.CurrentCultureIgnoreCase) == 0) return item;
+      throw new ProductNotFoundException();
     }
 
-    public void Update(T itemOldData, T itemNewData)
+    public void Update(Product itemOldData, Product itemNewData)
     {
-      ProductsRepo<T>.Validate(itemNewData);
-      foreach (IProduct item in list)
-        if (item.Equals(itemNewData)) throw new ProductAlreadyExistException(_alreadyExistMsg);
-      bool found=false;
-      foreach (IProduct item in list)
-        if (item.Equals(itemOldData)) found = true;
-      if (!found) throw new ProductNotFoundException(_notFoundMsg);
+      Validate(itemNewData);
+      foreach (Product item in list)
+        if (item.Equals(itemNewData)) throw new ProductAlreadyExistException();
+      Read(itemOldData.Name, itemOldData.Manufacturer);
       list.Remove(itemOldData);
       list.Add(itemNewData);      
     }
 
     public void Delete(string name, string manufacturer)
     {
-      string itemToFind = $"{name} {manufacturer}";
-      foreach (IProduct item in list)
-        if (string.Compare(item.ToString(), itemToFind, StringComparison.CurrentCultureIgnoreCase) == 0)          
-        {
-          list.Remove((T)item);          
-          return;
-        }
-      throw new ProductNotFoundException(_notFoundMsg);
+      if (Read(name, manufacturer) is Product product)
+        list.Remove(product);     
+      else throw new ProductNotFoundException();
+        
     }
     // Метод, возвращающий все объекты из репозитория.
-    public IEnumerable<T> GetAll() => this.list;
-    private static void Validate(T item)
+    public IEnumerable<Product> GetAll() => this.list;
+    private static void Validate(Product item)
     {
-      string errors = "";
-      Type type = typeof(IProduct);
+      StringBuilder stringBuilder = new();      
+      Type type = typeof(Product);
       object[] attributes = type.GetCustomAttributes(false);
       foreach (Attribute attr in attributes)
       {
         if ((attr is NameValidator nameValidation) && (nameValidation.NotValid(item, out string validationError)))
-          errors += validationError;
+          stringBuilder.Append(validationError + Environment.NewLine);
         if ((attr is ManufacturerValidator manufacturerValidation) && (manufacturerValidation.NotValid(item, out string validateError)))
-          errors += validateError;
+          stringBuilder.Append(validateError + Environment.NewLine);
       }        
-      if (errors.Length > 0)
-        throw new ValidationException($"{item} не валиден: {errors}");     
-    }
-    private void RegisterTypes()
-    {
-      Assembly assembly = Assembly.GetAssembly(typeof(T));
-      Type[] alltypes = assembly.GetTypes();
-      foreach (Type type in alltypes)
-        if ((type.Namespace == "ProducstLibrary.Model") && (type.IsClass) && (!type.IsAbstract))
-        {
-          var obj = Activator.CreateInstance(type);
-          string typeName = (string)type.GetMethod("PrintType").Invoke(obj, null);
-          dictTypes.Add(typeName, type);
-        }      
-    }
-    public Dictionary<string, Type> GetRegisteredTypes() => this.dictTypes;
+      if (stringBuilder.ToString().Length > 0)
+        throw new ValidationException(stringBuilder.ToString());     
+    }   
 
     public void Clear() => this.list.Clear();
 
-    public IEnumerable<T> SortedByName()
+    public IEnumerable<Product> SortedByName()
     {
-      var sortedList = list.OrderBy(x => x.Name, StringComparison.OrdinalIgnoreCase.WithNaturalSort());
+      var sortedList = this.list.OrderBy(product => product.Name, StringComparison.OrdinalIgnoreCase.WithNaturalSort());
       this.list = sortedList.ToList();
       return sortedList;      
     }
-    public IEnumerable<T> SortedtByPrice()
+    public IEnumerable<Product> SortedtByPrice()
     {
-      var sortedList = list.OrderBy(x => x.Price);
+      var sortedList = list.OrderBy(product => product.Price);
       this.list = sortedList.ToList();
       return sortedList;
     }
@@ -109,11 +84,9 @@ namespace ProducstLibrary
 
 
     #region Конструкторы
-    public ProductsRepo()
+    public ProductRepo()
     {     
-      this.list = new();
-      this.dictTypes = new();
-      this.RegisterTypes();
+      this.list = new();      
     }    
     #endregion
   }

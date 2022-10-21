@@ -1,10 +1,10 @@
 ﻿@using ExcelService
-@using ProducstLibrary
-@using ProducstLibrary.Exceptions
-@using ProducstLibrary.Model
+@using ProductLibrary
+@using ProductLibrary.Exceptions
+@using ProductLibrary.Model
 
 @inject NavigationManager NavigationManager
-@inject ProductsRepo<IProduct> repo
+@inject ProductRepo repo
 @inject IJSRuntime JS
 
 <div class="modal @ModalClass" tabindex="-1" role="dialog" style="display:@ModalDisplay">
@@ -31,12 +31,12 @@
 }
 
 @code {
-  public Guid Guid = Guid.NewGuid();
+//  public Guid Guid = Guid.NewGuid();
   public string ModalDisplay = "none;";
   public string ModalClass = "";
   public bool GenerateReport = false;  
   public bool ShowBackdrop = false;
-  ExcelService<IProduct> excelService = new("Data/");
+  ExcelService excelService = new(WebServiceConstants.FilesDirectory);
 
   public void Open(bool generateReport)
   {
@@ -60,7 +60,7 @@
     MemoryStream ms = new MemoryStream();
     await e.File.OpenReadStream().CopyToAsync(ms);
     var bytes = ms.ToArray();
-    var fs= File.Create("Data/NewProductsPriceList.xlsx");    
+    var fs = File.Create(Path.Combine(WebServiceConstants.FilesDirectory, ExcelServiceConstants.NewPriceListFileName));
     await fs.WriteAsync(bytes, 0, bytes.Length);
     fs.Close();    
   }
@@ -69,28 +69,30 @@
   {
     if (GenerateReport)
     {      
-      List<IProduct> products = excelService.LoadFromFile(directory: "Data/").ToList();
-      List<IProduct> newProducts;
-      if (File.Exists("Data/NewProductsPriceList.xlsx")) newProducts = excelService.LoadFromFile("Data/", "NewProductsPriceList.xlsx").ToList();
+      List<Product> products = excelService.LoadFromFile(WebServiceConstants.FilesDirectory).ToList();
+      List<Product> newProducts;
+      if (File.Exists(Path.Combine(WebServiceConstants.FilesDirectory, ExcelServiceConstants.NewPriceListFileName)))
+        newProducts = excelService.LoadFromFile(WebServiceConstants.FilesDirectory, ExcelServiceConstants.NewPriceListFileName).ToList();
       else throw new FileNotFoundException("Файл NewProductsPriceList не найден");
-      List<IProduct> comparisonResult = new();
-      foreach (IProduct product in products)
-        foreach (IProduct newProduct in newProducts)
+      List<Product> comparisonResult = new();
+      foreach (Product product in products)
+        foreach (Product newProduct in newProducts)
           if ((product.Name == newProduct.Name) && (product.Manufacturer == newProduct.Manufacturer) && (product.Price!=newProduct.Price))
-            comparisonResult.Add((IProduct)newProduct);      
-      await excelService.SaveToFileAsync(comparisonResult, "Data/", ExcelServiceConstants.DefaultReportFileName);
-      var fileStream = File.OpenRead("Data/Report.xlsx");
-      var fileName = "ReportChangedPrices.xlsx";
+            comparisonResult.Add(newProduct);      
+      await excelService.SaveToFileAsync(comparisonResult, WebServiceConstants.FilesDirectory, ExcelServiceConstants.ReportFileName, ExcelServiceConstants.ReportSheetName);
+      var fileStream = File.OpenRead(Path.Combine(WebServiceConstants.FilesDirectory, ExcelServiceConstants.ReportFileName));      
       using var streamRef = new DotNetStreamReference(stream: fileStream);
-      await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+      await JS.InvokeVoidAsync("downloadFileFromStream", ExcelServiceConstants.ReportFileName, streamRef);
       this.NavigationManager.NavigateTo("/pricelist", true);
     }
     else
     {
-      File.Copy("Data/NewProductsPriceList.xlsx", "Data/ProductsPriceList.xlsx", true);
-      File.Delete("Data/NewProductsPriceList.xlsx");
+      string src =Path.Combine(WebServiceConstants.FilesDirectory, ExcelServiceConstants.NewPriceListFileName);
+      string dest = Path.Combine(WebServiceConstants.FilesDirectory, ExcelServiceConstants.PriceListFileName);
+      File.Copy(src, dest, true);
+      File.Delete(src);
       repo.Clear();
-      foreach (var item in excelService.LoadFromFile("Data/"))
+      foreach (var item in excelService.LoadFromFile(WebServiceConstants.FilesDirectory))
         repo.Create(item);
       this.NavigationManager.NavigateTo("/pricelist", true);
     }

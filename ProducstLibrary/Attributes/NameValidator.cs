@@ -1,8 +1,8 @@
 ﻿using System.Text.RegularExpressions;
 
-using ProducstLibrary.Model;
+using ProductLibrary.Model;
 
-namespace ProducstLibrary.Attributes
+namespace ProductLibrary.Attributes
 {
   // Валидатор продукта по названию - должно быть более двух букв.
   [AttributeUsage(AttributeTargets.Property)]
@@ -16,7 +16,7 @@ namespace ProducstLibrary.Attributes
     {
       errorMessage = $"Название менее двух символов или содержит пробелы, цифры, спецсимволы.";
       Regex regex = new(@"[^a-zA-Zа-яА-Я1-9]{minLenght,}");
-      if (item is IProduct product) return (!regex.IsMatch(product.Name));
+      if (item is Product product) return (!regex.IsMatch(product.Name));
       return true;
     }
     #endregion

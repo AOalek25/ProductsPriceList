@@ -1,11 +1,11 @@
 ﻿@page "/pricelist"
 @using ExcelService
-@using ProducstLibrary
-@using ProducstLibrary.Exceptions
-@using ProducstLibrary.Model
+@using ProductLibrary
+@using ProductLibrary.Exceptions
+@using ProductLibrary.Model
 @using System.IO
 
-@inject ProductsRepo<IProduct> repo
+@inject ProductRepo repo
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JS
 
@@ -23,7 +23,7 @@ else
    <button class="btn btn-primary" @onclick="Read">Найти</button>  
    <a href="inputdialog" class="btn btn-primary">Добавить</a>
 
-  <a id="exportFile" class="btn btn-primary" href="Data/" download="ProductPriceList.xlsx"
+  <a id="exportFile" class="btn btn-primary" href=WebServiceConstants.FilesDirectory download="ProductPriceList.xlsx"
    role="button" target="=_top">Export File</a>
 
   <button class="btn btn-primary" @onclick="Delete">Удалить</button>
@@ -39,8 +39,7 @@ else
   <table class="table">
     <thead>
       <tr>
-        <th>Идентификатор</th>
-        <th>тип</th>
+        <th>Идентификатор</th>        
         <th>Наименование</th>
         <th>Производитель</th>
         <th>Цена</th>
@@ -50,11 +49,10 @@ else
       @foreach (var product in list)
       {
         <tr>
-          <td>@product.PrintId()</td>
-          <td>@product.PrintType()</td>
+          <td>@product.Id</td>          
           <td>@product.Name</td>
           <td>@product.Manufacturer</td>
-          <td>@product.PrintPrice()</td>
+          <td>@product.Price</td>
         </tr>
       }
     </tbody>
@@ -65,43 +63,38 @@ else
 @code {
   private WebService.Pages.UploadFile Modal { get; set; }  
 
-  public Guid id;
-  public string typeName = "";
+  public string id="";  
   public string name = "";
-  public decimal price;
   public string manufacturer = "";
-  ExcelService<IProduct> excelService = new("Data/");
-  List<IProduct> list = new();
+  public decimal price;  
+  ExcelService excelService = new(WebServiceConstants.FilesDirectory);
+  List<Product> list = new();
 
-  protected override Task OnInitializedAsync()
+  protected override async Task OnInitializedAsync()
   {
     repo.Clear();
-    foreach (var item in excelService.LoadFromFile("Data/"))
+    foreach (var item in excelService.LoadFromFile(WebServiceConstants.FilesDirectory))
       repo.Create(item);
     list = repo.GetAll().ToList();
-    return Task.CompletedTask;
+    await Task.CompletedTask;
   }
 
   internal void Read()
   { 
-    if (ReadStringNotValid(name)) { throw new ArgumentException(); return; }
-    if (ReadStringNotValid(manufacturer)) { throw new ArgumentException(); return; }
-    try
-    {
-      var item = repo.Read(name, manufacturer);
+    if (ReadStringNotValid(name)) throw new ArgumentException();
+    if (ReadStringNotValid(manufacturer)) throw new ArgumentException();
+    var item = repo.Read(name, manufacturer);
       list.Clear();
       list.Add(item);
-    }
-    catch (ProductNotFoundException ex)
-    {   }
+       
   }
 
-  internal void PrintAll()
+  internal async Task PrintAll()
   { 
-    OnInitializedAsync();
+    await OnInitializedAsync();
   }
 
-  internal void Add()
+  internal async Task Add()
   {
     if (ReadStringNotValid(typeName)) { throw new ArgumentException();   return; }
     if (ReadStringNotValid(name)) { throw new ArgumentException(); return; }
@@ -112,27 +105,27 @@ else
         try
         {
           var obj = Activator.CreateInstance(registeredType.Value, new object[] { name, manufacturer, price });
-          repo.Create((IProduct)obj);
-          excelService.SaveToFileAsync(repo.GetAll(), "Data/", ExcelServiceConstants.DefaultPriceListFileName);
+          repo.Create((Product)obj);
+          excelService.SaveToFileAsync(repo.GetAll(), WebServiceConstants.FilesDirectory, ExcelServiceConstants.DefaultPriceListFileName);
         }
         catch (ProductNotFoundException ex)
         { }
       }
-    OnInitializedAsync();
+    await OnInitializedAsync();
   }
 
-  internal void Delete()
+  internal async Task Delete()
   { 
-    if (ReadStringNotValid(name)) { throw new ArgumentException(); return; }
-    if (ReadStringNotValid(manufacturer)) { throw new ArgumentException(); return; }
+    if (ReadStringNotValid(name)) throw new ValidationException("Невалидный name"); 
+    if (ReadStringNotValid(manufacturer)) throw new ValidationException("Невалидный поризводитель");
     try
     {
       repo.Delete(name, manufacturer);
-      excelService.SaveToFileAsync(repo.GetAll(), "Data/", ExcelServiceConstants.DefaultPriceListFileName);
+      await excelService.SaveToFileAsync(repo.GetAll(), WebServiceConstants.FilesDirectory, ExcelServiceConstants.PriceListFileName);
     }
     catch (ProductNotFoundException ex)
     {   }
-    OnInitializedAsync();
+    await OnInitializedAsync();
   }
 
   static bool ReadStringNotValid(string param)
@@ -142,16 +135,16 @@ else
     else return false;
   }
 
-  internal void SortByName()
+  internal async Task SortByName()
   {
-    excelService.SaveToFileAsync(repo.SortedByName(), "Data/", ExcelServiceConstants.DefaultPriceListFileName);
-    OnInitializedAsync();
+    await excelService.SaveToFileAsync(repo.SortedByName(), WebServiceConstants.FilesDirectory);
+    await OnInitializedAsync();
   }
 
-  internal void SortByPrice()
+  internal async Task SortByPrice()
   {
-    excelService.SaveToFileAsync(repo.SortedtByPrice(), "Data/", ExcelServiceConstants.DefaultPriceListFileName);
-    OnInitializedAsync();
+    await excelService.SaveToFileAsync(repo.SortedtByPrice(), WebServiceConstants.FilesDirectory);
+    await OnInitializedAsync();
   }
 
   internal void GenerateReportChangedPrices()
@@ -161,13 +154,10 @@ else
 
   internal async Task PrintPricetags()
   {
-    await excelService.PrintAllPriceTagsAsync("Data/", "PriceTags.xlsx");
+    await excelService.PrintAllPriceTagsAsync(repo.GetAll(), WebServiceConstants.FilesDirectory);
     var fileStream = File.OpenRead("Data/PriceTags.xlsx");
-    var fileName = "PriceTags.xlsx";
-
     using var streamRef = new DotNetStreamReference(stream: fileStream);
-
-    await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);    
+    await JS.InvokeVoidAsync("downloadFileFromStream", ExcelServiceConstants.PriceTagsFileName, streamRef);
    }
   
 }

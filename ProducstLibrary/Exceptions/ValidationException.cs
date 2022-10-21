@@ -1,8 +1,8 @@
-﻿namespace ProducstLibrary.Exceptions
+﻿namespace ProductLibrary.Exceptions
 {
+  // Исключение "Невалидное поле".
   public class ValidationException : Exception
   {
-    // Исключение "Невалидное поле".
     public ValidationException(string? message) : base(message)
     {
     }

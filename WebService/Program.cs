@@ -1,13 +1,11 @@
-using ProducstLibrary.Model;
-using ProducstLibrary;
+using ProductLibrary;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<ProductsRepo<IProduct>>();
-builder.Services.AddHttpClient();
+builder.Services.AddSingleton<ProductRepo>();
 
 var app = builder.Build();
 

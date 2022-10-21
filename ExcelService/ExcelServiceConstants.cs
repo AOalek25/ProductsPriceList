@@ -8,14 +8,18 @@ namespace ExcelService
 {
   public class ExcelServiceConstants
   {
-    public const string DefaultPriceListFileName = "ProductsPriceList.xlsx";
-    public const string DefaultPriceTagsFileName = "PriceTags.xlsx";
-    public const string DefaultReportFileName = "Report.xlsx";
-    public const string DefaultReportExcelSheetName = "ChangedPricesReport";
-    public const string DefaultPriceTagsSheetName = "PriceTags";
-    public const string DefaultPriceListSheetName = "PriceList";
-    public static readonly string ExcelFilePath = Path.Combine(Environment.CurrentDirectory, "ProductsPriceList.xlsx");
-    public static readonly string PriceTagsFilePath = Path.Combine(Environment.CurrentDirectory, "PriceTags.xlsx");
-    public static readonly string reportFilePath = Path.Combine(Environment.CurrentDirectory, "Report.xlsx");
+    public const string PriceListFileName = "PriceList.xlsx";
+    public const string PriceListSheetName = "PriceList";
+    public const string NewPriceListFileName = "NewProductsPriceList.xlsx";
+
+    public const string PriceTagsFileName = "PriceTags.xlsx";
+    public const string PriceTagsSheetName = "PriceTags";
+
+    public const string ReportFileName = "ReportChangedPrices.xlsx";
+    public const string ReportSheetName = "ReportChangedPrices";
+        
+    public static readonly string PriceListFilePath = Path.Combine(Environment.CurrentDirectory, PriceListFileName);
+    public static readonly string PriceTagsFilePath = Path.Combine(Environment.CurrentDirectory, PriceTagsFileName);
+    public static readonly string ReportFilePath = Path.Combine(Environment.CurrentDirectory, ReportFileName);
   }
 }

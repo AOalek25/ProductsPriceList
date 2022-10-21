@@ -1,7 +1,7 @@
 ﻿using ExcelService;
-using ProducstLibrary;
-using ProducstLibrary.Exceptions;
-using ProducstLibrary.Model;
+using ProductLibrary;
+using ProductLibrary.Exceptions;
+using ProductLibrary.Model;
 
 namespace ConsoleService
 {
@@ -12,8 +12,8 @@ namespace ConsoleService
     public string name;
     public decimal price;
     public string manufacturer;
-    ProductsRepo<IProduct> repo; 
-    ExcelService<IProduct> excelService; 
+    ProductsRepo<Product> repo; 
+    ExcelService<Product> excelService; 
   
     public ConsolService()
     {
@@ -66,7 +66,7 @@ namespace ConsoleService
           try
           {
             var obj = Activator.CreateInstance(registeredType.Value, new object[] { name, manufacturer, price });          
-            repo.Create((IProduct)obj);
+            repo.Create((Product)obj);
             excelService.SaveToFileAsync(repo.GetAll(), Environment.CurrentDirectory, ExcelServiceConstants.DefaultPriceListFileName);
             return;
           }
@@ -186,14 +186,14 @@ namespace ConsoleService
 
     internal void GenerateReportChangedPrices() 
     {
-      List<IProduct> comparisonResult = new();
-      List<IProduct> products = excelService.LoadFromFile(Environment.CurrentDirectory).ToList();
+      List<Product> comparisonResult = new();
+      List<Product> products = excelService.LoadFromFile(Environment.CurrentDirectory).ToList();
       this.LoadNewPriceList("NewProductsPriceList.xlsx");
-      List<IProduct> newProducts = excelService.LoadFromFile(Environment.CurrentDirectory, "NewProductsPriceList.xlsx").ToList();
-      foreach (IProduct product in products)
-        foreach (IProduct newProduct in newProducts)
+      List<Product> newProducts = excelService.LoadFromFile(Environment.CurrentDirectory, "NewProductsPriceList.xlsx").ToList();
+      foreach (Product product in products)
+        foreach (Product newProduct in newProducts)
           if ((product.Name == newProduct.Name) && (product.Manufacturer == newProduct.Manufacturer) && (product.Price!=newProduct.Price))
-            comparisonResult.Add((IProduct)newProduct);
+            comparisonResult.Add((Product)newProduct);
       foreach (var item in comparisonResult)
         Console.WriteLine(item.PrintInfo());
       excelService.SaveToFileAsync(comparisonResult, Environment.CurrentDirectory, ExcelServiceConstants.DefaultReportFileName);      

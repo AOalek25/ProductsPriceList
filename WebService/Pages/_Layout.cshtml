@@ -28,8 +28,8 @@
     </div>
 
     <script src="_framework/blazor.server.js"></script>
-  <script>
-    window.downloadFileFromStream = async (fileName, contentStreamReference) => {
+    <script>
+      window.downloadFileFromStream = async (fileName, contentStreamReference) => {
         const arrayBuffer = await contentStreamReference.arrayBuffer();
         const blob = new Blob([arrayBuffer]);
         const url = URL.createObjectURL(blob);
@@ -39,8 +39,8 @@
         anchorElement.click();
         anchorElement.remove();
         URL.revokeObjectURL(url);
-    }
-  </script>
+      }
+     </script>
 
 </body>
 </html>
