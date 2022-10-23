@@ -9,6 +9,7 @@ namespace ProductLibrary
   public class ProductRepo
   {
     #region Поля и свойства    
+    public bool delete;    
     private List<Product> list;          
     #endregion
 
@@ -18,8 +19,7 @@ namespace ProductLibrary
       Validate(newItem);
       foreach (Product item in list)
         if (item.Equals(newItem)) throw new ProductAlreadyExistException();
-      list.Add(newItem);
-      
+      list.Add(newItem);      
     }
 
     public Product Read(string name, string manufacturer)

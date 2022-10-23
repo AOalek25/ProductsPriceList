@@ -1,0 +1,55 @@
+﻿@page "/addinputdialog"
+@using ProductLibrary
+@using ProductLibrary.Model
+@using ProductLibrary.Exceptions
+@using ExcelService
+
+@inject ProductRepo repo
+@inject NavigationManager NavigationManager
+
+<h3>Введите данные.</h3>
+
+<div class="row">    
+    <div class="col">
+      <input class="form-control" placeholder="Введите наименование" @bind="name"></input>
+    </div>
+    <div class="col">
+      <input class="form-control" placeholder="Введите производителя" @bind="manufacturer"></input>
+    </div>
+    <div class="col">
+      <input class="form-control" placeholder="Введите цену" @bind="price"></input>
+    </div>
+ </div>
+
+ <button class="btn btn-primary" @onclick="Add">Подтвердить</button> 
+ <a href="pricelist" class="btn btn-primary">Назад</a> 
+
+@code {
+  public string id="";  
+  public string name = "";
+  public string price;
+  public string manufacturer = "";
+  ExcelService excelService = new(ExcelServiceConstants.BlazorData);
+
+  internal async Task Add()
+  {
+    if (ReadStringNotValid(name)) throw new ArgumentException(); 
+    if (ReadStringNotValid(manufacturer)) throw new ArgumentException(); 
+    if (ReadStringNotValid(price)) throw new ArgumentException();
+    try
+    {
+      repo.Create(new Product(name, manufacturer, price));
+      await excelService.SaveToFileAsync(repo.GetAll(), ExcelServiceConstants.BlazorData, ExcelServiceConstants.PriceListFileName);
+    }
+    catch (ProductNotFoundException ex)
+    { }
+    this.NavigationManager.NavigateTo("/pricelist", true);
+  }
+
+  static bool ReadStringNotValid(string param)
+  {
+    if (string.IsNullOrEmpty(param))
+      return true;
+    else return false;
+  }
+}

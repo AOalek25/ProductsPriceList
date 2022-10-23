@@ -1,4 +1,6 @@
 ﻿using System.Globalization;
+using System.Xml.Linq;
+
 using ProductLibrary.Attributes;
 using ProductLibrary.Exceptions;
 
@@ -22,7 +24,7 @@ namespace ProductLibrary.Model
       }      
       set
       {
-        if (decimal.TryParse(value, out decimal decimalValue))
+        if ((decimal.TryParse(value, out decimal decimalValue)) && (decimalValue > 0))
           this.price = decimalValue;
         else throw new ValidationException("Введено неверно значение цены.");
       }
@@ -55,6 +57,15 @@ namespace ProductLibrary.Model
         this.id = idGuid;
       else throw new ValidationException("Введено неверное значение id.");
     }
+
+    public Product()
+    {
+      this.id = Guid.NewGuid();
+      this.Name = "Undefined";
+      this.Manufacturer = "Undefined";
+      this.price = 0m;
+    }
+
     #endregion
   }  
 }

@@ -31,16 +31,15 @@
 }
 
 @code {
-//  public Guid Guid = Guid.NewGuid();
   public string ModalDisplay = "none;";
   public string ModalClass = "";
-  public bool GenerateReport = false;  
+  public bool generateReport = false;
   public bool ShowBackdrop = false;
-  ExcelService excelService = new(WebServiceConstants.FilesDirectory);
+  ExcelService excelService = new(ExcelServiceConstants.BlazorData);
 
   public void Open(bool generateReport)
   {
-    GenerateReport = generateReport;
+    generateReport = generateReport;
     ModalDisplay = "block;";
     ModalClass = "Show";
     ShowBackdrop = true;
@@ -60,39 +59,39 @@
     MemoryStream ms = new MemoryStream();
     await e.File.OpenReadStream().CopyToAsync(ms);
     var bytes = ms.ToArray();
-    var fs = File.Create(Path.Combine(WebServiceConstants.FilesDirectory, ExcelServiceConstants.NewPriceListFileName));
+    var fs = File.Create(Path.Combine(ExcelServiceConstants.BlazorData, ExcelServiceConstants.NewPriceListFileName));
     await fs.WriteAsync(bytes, 0, bytes.Length);
     fs.Close();    
   }
 
   private async Task Accept()
   {
-    if (GenerateReport)
+    if (generateReport)
     {      
-      List<Product> products = excelService.LoadFromFile(WebServiceConstants.FilesDirectory).ToList();
+      List<Product> products = excelService.LoadFromFile(ExcelServiceConstants.BlazorData).ToList();
       List<Product> newProducts;
-      if (File.Exists(Path.Combine(WebServiceConstants.FilesDirectory, ExcelServiceConstants.NewPriceListFileName)))
-        newProducts = excelService.LoadFromFile(WebServiceConstants.FilesDirectory, ExcelServiceConstants.NewPriceListFileName).ToList();
+      if (File.Exists(Path.Combine(ExcelServiceConstants.BlazorData, ExcelServiceConstants.NewPriceListFileName)))
+        newProducts = excelService.LoadFromFile(ExcelServiceConstants.BlazorData, ExcelServiceConstants.NewPriceListFileName).ToList();
       else throw new FileNotFoundException("Файл NewProductsPriceList не найден");
       List<Product> comparisonResult = new();
       foreach (Product product in products)
         foreach (Product newProduct in newProducts)
           if ((product.Name == newProduct.Name) && (product.Manufacturer == newProduct.Manufacturer) && (product.Price!=newProduct.Price))
             comparisonResult.Add(newProduct);      
-      await excelService.SaveToFileAsync(comparisonResult, WebServiceConstants.FilesDirectory, ExcelServiceConstants.ReportFileName, ExcelServiceConstants.ReportSheetName);
-      var fileStream = File.OpenRead(Path.Combine(WebServiceConstants.FilesDirectory, ExcelServiceConstants.ReportFileName));      
+      await excelService.SaveToFileAsync(comparisonResult, ExcelServiceConstants.BlazorData, ExcelServiceConstants.ReportFileName, ExcelServiceConstants.ReportSheetName);
+      var fileStream = File.OpenRead(Path.Combine(ExcelServiceConstants.BlazorData, ExcelServiceConstants.ReportFileName));
       using var streamRef = new DotNetStreamReference(stream: fileStream);
       await JS.InvokeVoidAsync("downloadFileFromStream", ExcelServiceConstants.ReportFileName, streamRef);
       this.NavigationManager.NavigateTo("/pricelist", true);
     }
     else
     {
-      string src =Path.Combine(WebServiceConstants.FilesDirectory, ExcelServiceConstants.NewPriceListFileName);
-      string dest = Path.Combine(WebServiceConstants.FilesDirectory, ExcelServiceConstants.PriceListFileName);
+      string src = Path.Combine(ExcelServiceConstants.BlazorData, ExcelServiceConstants.NewPriceListFileName);
+      string dest = Path.Combine(ExcelServiceConstants.BlazorData, ExcelServiceConstants.PriceListFileName);
       File.Copy(src, dest, true);
       File.Delete(src);
       repo.Clear();
-      foreach (var item in excelService.LoadFromFile(WebServiceConstants.FilesDirectory))
+      foreach (var item in excelService.LoadFromFile(ExcelServiceConstants.BlazorData))
         repo.Create(item);
       this.NavigationManager.NavigateTo("/pricelist", true);
     }

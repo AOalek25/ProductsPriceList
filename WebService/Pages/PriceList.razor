@@ -19,22 +19,17 @@
 }
 else
 {  
- 
-   <button class="btn btn-primary" @onclick="Read">Найти</button>  
-   <a href="inputdialog" class="btn btn-primary">Добавить</a>
-
-  <a id="exportFile" class="btn btn-primary" href=WebServiceConstants.FilesDirectory download="ProductPriceList.xlsx"
-   role="button" target="=_top">Export File</a>
-
-  <button class="btn btn-primary" @onclick="Delete">Удалить</button>
-  <button class="btn btn-primary" @onclick="()=>OnInitializedAsync()">Весь список</button>
+   <a href="readinputdialog" class="btn btn-primary">Найти</a>
+   <a href="addinputdialog" class="btn btn-primary">Добавить</a>      
+   <button class="btn btn-primary" @onclick="Delete">Удалить</button>
+   <button class="btn btn-primary" @onclick="()=>OnInitializedAsync()">Весь список</button>
    <button class="btn btn-primary" @onclick="SortByName">Сортировать по названию</button>
    <button class="btn btn-primary" @onclick="SortByPrice">Сортировать по цене</button>
    <p></p>
-  <WebService.Pages.UploadFile @ref="Modal"></WebService.Pages.UploadFile>
+   <WebService.Pages.UploadFile @ref="Modal"></WebService.Pages.UploadFile>
   <button class="btn btn-primary" @onclick="() => Modal.Open(false)">Загрузить новый файл</button>
   <button class="btn btn-primary" @onclick="() => Modal.Open(true)">Отчет об измененнии цен</button>
-   <button class="btn btn-primary" @onclick="PrintPricetags">Файл с ценниками</button>
+   <button class="btn btn-primary" @onclick="PrintPriceTags">Файл с ценниками</button>
      
   <table class="table">
     <thead>
@@ -67,26 +62,16 @@ else
   public string name = "";
   public string manufacturer = "";
   public decimal price;  
-  ExcelService excelService = new(WebServiceConstants.FilesDirectory);
+  ExcelService excelService = new(ExcelServiceConstants.BlazorData);
   List<Product> list = new();
 
   protected override async Task OnInitializedAsync()
   {
     repo.Clear();
-    foreach (var item in excelService.LoadFromFile(WebServiceConstants.FilesDirectory))
+    foreach (var item in excelService.LoadFromFile(ExcelServiceConstants.BlazorData))
       repo.Create(item);
     list = repo.GetAll().ToList();
     await Task.CompletedTask;
-  }
-
-  internal void Read()
-  { 
-    if (ReadStringNotValid(name)) throw new ArgumentException();
-    if (ReadStringNotValid(manufacturer)) throw new ArgumentException();
-    var item = repo.Read(name, manufacturer);
-      list.Clear();
-      list.Add(item);
-       
   }
 
   internal async Task PrintAll()
@@ -94,67 +79,27 @@ else
     await OnInitializedAsync();
   }
 
-  internal async Task Add()
-  {
-    if (ReadStringNotValid(typeName)) { throw new ArgumentException();   return; }
-    if (ReadStringNotValid(name)) { throw new ArgumentException(); return; }
-    if (ReadStringNotValid(manufacturer)) { throw new ArgumentException(); return; }
-    foreach (var registeredType in repo.GetRegisteredTypes())
-      if (this.typeName.Equals(registeredType.Key, StringComparison.CurrentCultureIgnoreCase))
-      {
-        try
-        {
-          var obj = Activator.CreateInstance(registeredType.Value, new object[] { name, manufacturer, price });
-          repo.Create((Product)obj);
-          excelService.SaveToFileAsync(repo.GetAll(), WebServiceConstants.FilesDirectory, ExcelServiceConstants.DefaultPriceListFileName);
-        }
-        catch (ProductNotFoundException ex)
-        { }
-      }
-    await OnInitializedAsync();
-  }
-
   internal async Task Delete()
-  { 
-    if (ReadStringNotValid(name)) throw new ValidationException("Невалидный name"); 
-    if (ReadStringNotValid(manufacturer)) throw new ValidationException("Невалидный поризводитель");
-    try
-    {
-      repo.Delete(name, manufacturer);
-      await excelService.SaveToFileAsync(repo.GetAll(), WebServiceConstants.FilesDirectory, ExcelServiceConstants.PriceListFileName);
-    }
-    catch (ProductNotFoundException ex)
-    {   }
-    await OnInitializedAsync();
+  {
+    repo.delete = true;
+    this.NavigationManager.NavigateTo("/readinputdialog");
   }
-
-  static bool ReadStringNotValid(string param)
-  {    
-    if (string.IsNullOrEmpty(param))
-      return true;
-    else return false;
-  }
-
+  
   internal async Task SortByName()
   {
-    await excelService.SaveToFileAsync(repo.SortedByName(), WebServiceConstants.FilesDirectory);
+    await excelService.SaveToFileAsync(repo.SortedByName(), ExcelServiceConstants.BlazorData);
     await OnInitializedAsync();
   }
 
   internal async Task SortByPrice()
   {
-    await excelService.SaveToFileAsync(repo.SortedtByPrice(), WebServiceConstants.FilesDirectory);
+    await excelService.SaveToFileAsync(repo.SortedtByPrice(), ExcelServiceConstants.BlazorData);
     await OnInitializedAsync();
   }
 
-  internal void GenerateReportChangedPrices()
+  internal async Task PrintPriceTags()
   {
-    
-  }
-
-  internal async Task PrintPricetags()
-  {
-    await excelService.PrintAllPriceTagsAsync(repo.GetAll(), WebServiceConstants.FilesDirectory);
+    await excelService.PrintAllPriceTagsAsync(repo.GetAll(), ExcelServiceConstants.BlazorData);
     var fileStream = File.OpenRead("Data/PriceTags.xlsx");
     using var streamRef = new DotNetStreamReference(stream: fileStream);
     await JS.InvokeVoidAsync("downloadFileFromStream", ExcelServiceConstants.PriceTagsFileName, streamRef);

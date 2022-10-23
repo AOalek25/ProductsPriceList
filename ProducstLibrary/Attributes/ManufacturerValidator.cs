@@ -19,8 +19,7 @@ namespace ProductLibrary.Attributes
     }
     #endregion
 
-    #region Конструкторы.
-    public ManufacturerValidator() { }
+    #region Конструкторы.    
     public ManufacturerValidator(int MinLenght) => this.minLenght = MinLenght;
     #endregion
   }

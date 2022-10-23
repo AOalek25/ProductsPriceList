@@ -1,12 +1,7 @@
 ﻿using NetBarcode;
 using OfficeOpenXml;
 using ProductLibrary.Model;
-
-using System.ComponentModel;
-using System.Globalization;
-
 using LicenseContext = OfficeOpenXml.LicenseContext;
-using Type = System.Type;
 
 namespace ExcelService
 {

@@ -1,0 +1,89 @@
+﻿@page "/addinputdialog"
+@using ProductLibrary
+@using ProductLibrary.Exceptions
+@using ExcelService
+@using ProductLibrary.Model
+
+@inject ProductRepo repo
+@inject NavigationManager NavigationManager
+
+<h3>Введите данные.</h3>
+
+<div class="row">
+  <div class="col">
+    <input class="form-control" placeholder="Введите наименование" @bind="name"></input>
+  </div>
+  <div class="col">
+    <input class="form-control" placeholder="Введите производителя" @bind="manufacturer"></input>
+  </div>  
+</div>
+
+<button class="btn btn-primary" @onclick="FindOrDelete">Подтвердить</button>
+<a href="pricelist" class="btn btn-primary">Назад</a>
+
+@if (!delete)
+{
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Идентификатор</th>
+        <th>Наименование</th>
+        <th>Производитель</th>
+        <th>Цена</th>
+      </tr>
+    </thead>
+    <tbody>      
+      {
+        <tr>
+          <td>@product.Id</td>
+          <td>@product.Name</td>
+          <td>@product.Manufacturer</td>
+          <td>@product.Price</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
+
+
+@code {
+  public string name = "";  
+  public string manufacturer = "";
+  public bool delete = false;
+  ExcelService excelService = new(ExcelServiceConstants.BlazorData);
+  Product product = new();
+
+  internal async Task FindOrDelete()
+  {
+    if (ReadStringNotValid(name)) throw new ArgumentException();
+    if (ReadStringNotValid(manufacturer)) throw new ArgumentException();
+    if (delete)
+    {
+      try
+      {
+        repo.Delete(name, manufacturer);
+        excelService.SaveToFileAsync(repo.GetAll(), ExcelServiceConstants.BlazorData, ExcelServiceConstants.PriceListFileName);
+      }
+      catch (ProductNotFoundException ex)
+      {       }
+      repo.delete = false;
+      this.NavigationManager.NavigateTo("/pricelist", true);
+    }
+    else
+    {
+      try
+      {
+        Product product = repo.Read(name, manufacturer);
+      }
+      catch (ProductNotFoundException ex)
+      { }      
+    }    
+  }
+
+  static bool ReadStringNotValid(string param)
+  {
+    if (string.IsNullOrEmpty(param))
+      return true;
+    else return false;
+  }
+}
