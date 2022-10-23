@@ -1,11 +1,10 @@
 ﻿using System.Text.RegularExpressions;
-
 using ProductLibrary.Model;
 
+// Валидатор продукта по названию - должно быть более двух букв.
 namespace ProductLibrary.Attributes
-{
-  // Валидатор продукта по названию - должно быть более двух букв.
-  [AttributeUsage(AttributeTargets.Property)]
+{  
+  [AttributeUsage(AttributeTargets.All)]
   public class NameValidator : Attribute
   {
     const int DefaultMinLenght = 2;
@@ -14,10 +13,12 @@ namespace ProductLibrary.Attributes
     // Метод, валидирующий продукт по названию - должно быть более двух букв.
     public bool NotValid<T>(T item, out string errorMessage)
     {
-      errorMessage = $"Название менее двух символов или содержит пробелы, цифры, спецсимволы.";
-      Regex regex = new(@"[^a-zA-Zа-яА-Я1-9]{minLenght,}");
-      if (item is Product product) return (!regex.IsMatch(product.Name));
-      return true;
+      errorMessage = $"Название продукта менее двух символов или содержит пробелы, спецсимволы.";
+      Regex regex = new(@"[^a-zA-Zа-яА-Я1-9]");
+      if (item is Product product)
+        if (product.Name.Length >= minLenght) return (regex.IsMatch(product.Name));
+        else return true;
+      else return true;
     }
     #endregion
 

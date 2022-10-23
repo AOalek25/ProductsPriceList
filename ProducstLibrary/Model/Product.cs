@@ -6,25 +6,25 @@ using ProductLibrary.Exceptions;
 
 namespace ProductLibrary.Model
 {
+  [NameValidator(2)]
+  [ManufacturerValidator(2)]
   public class Product
   {
     #region Поля и свойства        
     private readonly Guid id;
     private decimal price;
-    public string Id { get => this.id.ToString(); }    
-    [NameValidator(2)]
-    public string Name { get; set; }
-    [ManufacturerValidator(2)]
+    public string Id { get => this.id.ToString(); }        
+    public string Name { get; set; }    
     public string Manufacturer { get; set; }    
     public string Price 
     {
       get
       { 
-        return string.Format(CultureInfo.CurrentCulture, "{0:c2}", this.price); 
+        return string.Format(CultureInfo.CurrentCulture, "{0:f2}", this.price); 
       }      
       set
       {
-        if ((decimal.TryParse(value, out decimal decimalValue)) && (decimalValue > 0))
+        if ((decimal.TryParse(value, out decimal decimalValue)) && (decimalValue >= 0))
           this.price = decimalValue;
         else throw new ValidationException("Введено неверно значение цены.");
       }

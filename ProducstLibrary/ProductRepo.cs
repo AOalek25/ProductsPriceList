@@ -49,22 +49,7 @@ namespace ProductLibrary
     }
     // Метод, возвращающий все объекты из репозитория.
     public IEnumerable<Product> GetAll() => this.list;
-    private static void Validate(Product item)
-    {
-      StringBuilder stringBuilder = new();      
-      Type type = typeof(Product);
-      object[] attributes = type.GetCustomAttributes(false);
-      foreach (Attribute attr in attributes)
-      {
-        if ((attr is NameValidator nameValidation) && (nameValidation.NotValid(item, out string validationError)))
-          stringBuilder.Append(validationError + Environment.NewLine);
-        if ((attr is ManufacturerValidator manufacturerValidation) && (manufacturerValidation.NotValid(item, out string validateError)))
-          stringBuilder.Append(validateError + Environment.NewLine);
-      }        
-      if (stringBuilder.ToString().Length > 0)
-        throw new ValidationException(stringBuilder.ToString());     
-    }   
-
+    
     public void Clear() => this.list.Clear();
 
     public IEnumerable<Product> SortedByName()
@@ -79,7 +64,21 @@ namespace ProductLibrary
       this.list = sortedList.ToList();
       return sortedList;
     }
-
+    private static void Validate(Product item)
+    {
+      StringBuilder stringBuilder = new();
+      Type type = typeof(Product);
+      object[] attributes = type.GetCustomAttributes(false);
+      foreach (Attribute attr in attributes)
+      {
+        if (attr is NameValidator nameValidation)
+          if (nameValidation.NotValid(item, out string validationError)) stringBuilder.Append(validationError + Environment.NewLine);
+        if (attr is ManufacturerValidator manufacturerValidation)
+          if (manufacturerValidation.NotValid(item, out string validateError)) stringBuilder.Append(validateError + Environment.NewLine);
+      }
+      if (stringBuilder.ToString().Length > 0)
+        throw new ValidationException(stringBuilder.ToString());
+    }
     #endregion
 
 

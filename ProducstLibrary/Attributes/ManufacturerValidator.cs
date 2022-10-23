@@ -4,23 +4,26 @@ using ProductLibrary.Model;
 // Валидатор продукта по названию - должно быть более двух букв.
 namespace ProductLibrary.Attributes
 {
-  [AttributeUsage(AttributeTargets.Property)]
+  [AttributeUsage(AttributeTargets.All)]
   public class ManufacturerValidator : Attribute
   {
+    const int DefaultMinLenght = 2;
     public int minLenght;
     #region Методы.
-    // Метод, валидирующий продукт по названию - должно быть более двух букв.
+    // Метод, валидирующий наименование производителя - должно быть более двух букв.
     public bool NotValid<T>(T item, out string errorMessage)
     {
-      errorMessage = $"Название менее двух символов или содержит пробелы, спецсимволы.";
-      Regex regex = new(@"[^a-zA-Zа-яА-Я1-9]{minLenght,}");
-      if (item is Product product) return (!regex.IsMatch(product.Manufacturer));
-      return true;
+      errorMessage = $"Наименование производителя менее двух символов или содержит пробелы, спецсимволы.";
+      Regex regex = new(@"[^a-zA-Zа-яА-Я1-9]");
+      if (item is Product product)
+        if (product.Manufacturer.Length >= minLenght) return (regex.IsMatch(product.Manufacturer));
+        else return true;
+      else return true;
     }
     #endregion
 
     #region Конструкторы.    
-    public ManufacturerValidator(int MinLenght) => this.minLenght = MinLenght;
+    public ManufacturerValidator(int MinLenght = DefaultMinLenght) => this.minLenght = MinLenght;
     #endregion
   }
 }

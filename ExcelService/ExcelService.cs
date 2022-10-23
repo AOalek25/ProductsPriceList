@@ -117,7 +117,7 @@ namespace ExcelService
       }      
     }
 
-    public void CreateFileAndSheetsIfNotExists(string directory, string castomFileName="", string castomSheetName="")
+    private void CreateFileAndSheetsIfNotExists(string directory, string castomFileName="", string castomSheetName="")
     {
       ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
       using (var excelPackage = new ExcelPackage(Path.Combine(directory, ExcelServiceConstants.PriceListFileName)))

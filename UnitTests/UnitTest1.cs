@@ -6,6 +6,7 @@ using ProductLibrary.Exceptions;
 using ExcelService;
 using OfficeOpenXml;
 using System.IO;
+using NUnit.Framework.Internal.Execution;
 
 namespace UnitTests
 {
@@ -30,13 +31,11 @@ namespace UnitTests
     public void Setup()
     {
       var stringFactory = RandomizerFactory.GetRandomizer(new FieldOptionsText
-      { UseNumber = true, UseSpecial = false, UseSpace = false, Seed = 10 });
+      { UseNumber = false, UseSpecial = false, UseSpace = false, Seed = 10 });
       validName = stringFactory.Generate();
-      validManufacturer = stringFactory.Generate();
-      var shortStringFactory = RandomizerFactory.GetRandomizer(new FieldOptionsText
-      { UseNumber = true, UseSpecial = false, UseSpace = false, Seed = 2 });
+      validManufacturer = stringFactory.Generate();      
       tooShortName = "a";
-      tooShortManufacturer = "A";
+      tooShortManufacturer = "a";
       var stringUnvalidFactory = RandomizerFactory.GetRandomizer(new FieldOptionsText
       { UseNumber = true, UseSpecial = true, UseSpace = true, Seed = 10 });
       unvalidName = stringUnvalidFactory.Generate();
@@ -138,11 +137,11 @@ namespace UnitTests
     [Test]
     public void ProductRepoSortedByNameTest()
     {
-      testProduct = new Product("product 15", "0", "0");
+      testProduct = new Product("product15", "vendor", "0");
       repo.Create(testProduct);
-      repo.Create(new Product("product 1","0","0"));      
-      repo.Create(new Product("product 2", "0", "0"));
-      repo.Create(new Product("_product", "0", "0"));
+      repo.Create(new Product("product1", "vendor", "0"));      
+      repo.Create(new Product("product2", "vendor", "0"));
+      repo.Create(new Product("1product", "vendor", "0"));
       repo.SortedByName();
       var list = repo.GetAll().ToList();
       Assert.That((list.Last().Equals(testProduct)), Is.True);
@@ -151,11 +150,11 @@ namespace UnitTests
     [Test]
     public void ProductRepoSortedByPriceTest()
     {
-      testProduct = new Product("product 2", "0", "2,5");
+      testProduct = new Product("product2", "vendor", "2,5");
       repo.Create(testProduct);
-      repo.Create(new Product("product 1", "0", "2,4"));
-      repo.Create(new Product("product 15", "0", "2,3"));
-      repo.Create(new Product("_product", "0", "2,45"));
+      repo.Create(new Product("product1", "vendor", "2,4"));
+      repo.Create(new Product("product15", "vendor", "2,3"));
+      repo.Create(new Product("1product", "vendor", "2,45"));
       repo.SortedtByPrice();
       var list = repo.GetAll().ToList();
       Assert.That((list.Last().Equals(testProduct)), Is.True);
@@ -239,26 +238,28 @@ namespace UnitTests
     }
 
     [Test]
-    public void LoadAndSaveToExcelTest()
+    public async Task LoadAndSaveToExcelTestAsync()
     {
       excelservice = new(Environment.CurrentDirectory);
       if (testProduct != null)
         repo.Create(testProduct);
-      excelservice.SaveToFileAsync(repo.GetAll(), Environment.CurrentDirectory);
+      await excelservice.SaveToFileAsync(repo.GetAll(), Environment.CurrentDirectory);
       repo.Clear();
-      excelservice.LoadFromFile(Environment.CurrentDirectory);
+      var list = excelservice.LoadFromFile(Environment.CurrentDirectory);
+      foreach (var product in list)
+        repo.Create(product);
       Assert.That(repo.GetAll().Any(x => x.Equals(testProduct)), Is.True);
       Assert.That((repo.GetAll().Count() == 1), Is.True);
     }
 
 
     [Test]
-    public void PriceTagsSaveToFileTest()
+    public async Task PriceTagsSaveToFileTest()
     {      
       excelservice = new(Environment.CurrentDirectory);
       if (testProduct != null)
         repo.Create(testProduct);
-      excelservice.SaveToFileAsync(repo.GetAll(), Environment.CurrentDirectory);
+      await excelservice.SaveToFileAsync(repo.GetAll(), Environment.CurrentDirectory);
       ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
       using (var excelPackage = new ExcelPackage(Path.Combine(Environment.CurrentDirectory, ExcelServiceConstants.PriceTagsFileName)))
       {
@@ -266,9 +267,15 @@ namespace UnitTests
         if (workSheet != null)
         {
           workSheet.Cells.Clear();
-          excelservice.PrintAllPriceTagsAsync(repo.GetAll(), Environment.CurrentDirectory);
-          Assert.That((workSheet.Cells["A1"].Value.ToString().Equals("Идентификатор")), Is.True);
-        }
+          workSheet.Drawings.Clear();
+          await excelservice.PrintAllPriceTagsAsync(repo.GetAll(), Environment.CurrentDirectory);
+        }        
+      }
+      using (var excelPackage = new ExcelPackage(Path.Combine(Environment.CurrentDirectory, ExcelServiceConstants.PriceTagsFileName)))
+      {
+        ExcelWorksheet workSheet = excelPackage.Workbook.Worksheets[ExcelServiceConstants.PriceTagsSheetName];
+        if (workSheet != null)
+          Assert.That(workSheet.Drawings.Any(), Is.True);
       }
     }
 

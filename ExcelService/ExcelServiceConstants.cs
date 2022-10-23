@@ -10,13 +10,13 @@ namespace ExcelService
   {
     public const string PriceListFileName = "PriceList.xlsx";
     public const string PriceListSheetName = "PriceList";
-    public const string NewPriceListFileName = "NewProductsPriceList.xlsx";
+    public const string NewPriceListFileName = "NewPriceList.xlsx";
 
     public const string PriceTagsFileName = "PriceTags.xlsx";
     public const string PriceTagsSheetName = "PriceTags";
 
-    public const string ReportFileName = "ReportChangedPrices.xlsx";
-    public const string ReportSheetName = "ReportChangedPrices";
+    public const string ReportFileName = "Report.xlsx";
+    public const string ReportSheetName = "ChangedPrices";
 
     public const string BlazorData = "Data/";
 
