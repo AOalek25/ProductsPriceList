@@ -16,9 +16,9 @@ namespace ProducstLibrary.Model
 
     #region
     string PrintInfo();
-
-    string PrintPrice();
-    string PrintType() => string.Empty;
+    string PrintId();
+    string PrintType();
+    string PrintPrice();    
     #endregion
   }
 }

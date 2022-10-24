@@ -27,10 +27,11 @@ namespace ProducstLibrary.Model
       else return 1;
     }
     public override bool Equals(object? obj) => (obj is IProduct product) && (this.ToString() == product.ToString());        
-    public string PrintInfo() => $"{Id}: {Name} {Manufacturer} {PrintPrice()}";
+    public string PrintInfo() => $"{PrintId()} {PrintType()} {Name} {Manufacturer} {PrintPrice()}";
     public string PrintPrice() => string.Format(CultureInfo.CurrentCulture, "{0:c2}", this.Price);
     public override string ToString() => $"{Name} {Manufacturer}";       
     public override int GetHashCode() => this.PrintInfo().GetHashCode();
+    public string PrintId() => this.Id.ToString("N");
 
     public string PrintType() => "Хлеб";
     #endregion
@@ -39,7 +40,7 @@ namespace ProducstLibrary.Model
     [DefaultConstructor]
     public Bread(string name = "Undefined", string manufacturer = "Undefined", decimal price = 0m)
     { 
-      this.Id = Guid.NewGuid();
+      this.Id = Guid.NewGuid();      
       this.TypeName = $"{typeof(Bread).FullName}, {AssemblyName}";
       this.Name = name;
       this.Manufacturer = manufacturer;

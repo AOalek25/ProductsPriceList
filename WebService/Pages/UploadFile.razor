@@ -1,0 +1,99 @@
+﻿@using ExcelService
+@using ProducstLibrary
+@using ProducstLibrary.Exceptions
+@using ProducstLibrary.Model
+
+@inject NavigationManager NavigationManager
+@inject ProductsRepo<IProduct> repo
+@inject IJSRuntime JS
+
+<div class="modal @ModalClass" tabindex="-1" role="dialog" style="display:@ModalDisplay">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Загрузка файла</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <InputFile OnChange="@SingleUpload" />      
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="@Accept">Подтвердить</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="() => Close()">Отмена</button>                                 
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (ShowBackdrop)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+  public Guid Guid = Guid.NewGuid();
+  public string ModalDisplay = "none;";
+  public string ModalClass = "";
+  public bool GenerateReport = false;  
+  public bool ShowBackdrop = false;
+  ExcelService<IProduct> excelService = new("Data/");
+
+  public void Open(bool generateReport)
+  {
+    GenerateReport = generateReport;
+    ModalDisplay = "block;";
+    ModalClass = "Show";
+    ShowBackdrop = true;
+    StateHasChanged();
+  }
+
+  public void Close()
+  {
+    ModalDisplay = "none";
+    ModalClass = "";
+    ShowBackdrop = false;
+    StateHasChanged();    
+  }
+
+  private async Task SingleUpload(InputFileChangeEventArgs e)
+  {    
+    MemoryStream ms = new MemoryStream();
+    await e.File.OpenReadStream().CopyToAsync(ms);
+    var bytes = ms.ToArray();
+    var fs= File.Create("Data/NewProductsPriceList.xlsx");    
+    await fs.WriteAsync(bytes, 0, bytes.Length);
+    fs.Close();    
+  }
+
+  private async Task Accept()
+  {
+    if (GenerateReport)
+    {      
+      List<IProduct> products = excelService.LoadFromFile(directory: "Data/").ToList();
+      List<IProduct> newProducts;
+      if (File.Exists("Data/NewProductsPriceList.xlsx")) newProducts = excelService.LoadFromFile("Data/", "NewProductsPriceList.xlsx").ToList();
+      else throw new FileNotFoundException("Файл NewProductsPriceList не найден");
+      List<IProduct> comparisonResult = new();
+      foreach (IProduct product in products)
+        foreach (IProduct newProduct in newProducts)
+          if ((product.Name == newProduct.Name) && (product.Manufacturer == newProduct.Manufacturer) && (product.Price!=newProduct.Price))
+            comparisonResult.Add((IProduct)newProduct);      
+      await excelService.SaveToFileAsync(comparisonResult, "Data/", ExcelServiceConstants.DefaultReportFileName);
+      var fileStream = File.OpenRead("Data/Report.xlsx");
+      var fileName = "ReportChangedPrices.xlsx";
+      using var streamRef = new DotNetStreamReference(stream: fileStream);
+      await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+      this.NavigationManager.NavigateTo("/pricelist", true);
+    }
+    else
+    {
+      File.Copy("Data/NewProductsPriceList.xlsx", "Data/ProductsPriceList.xlsx", true);
+      File.Delete("Data/NewProductsPriceList.xlsx");
+      repo.Clear();
+      foreach (var item in excelService.LoadFromFile("Data/"))
+        repo.Create(item);
+      this.NavigationManager.NavigateTo("/pricelist", true);
+    }
+  }
+    
+}
