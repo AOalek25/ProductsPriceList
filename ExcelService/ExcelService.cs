@@ -103,7 +103,8 @@ namespace ExcelService
               barcodeStream.Position = 0;
               var barcodePicture = workSheet.Drawings.AddPicture(product.Id, barcodeStream, OfficeOpenXml.Drawing.ePictureType.Jpg);
               barcodePicture.SetSize(250, 100);
-              barcodePicture.SetPosition(rowIndex++, 0, 1, 0);
+              barcodePicture.SetPosition(rowIndex-1, 0, 1, 0);
+              rowIndex++;
             }
             workSheet.Cells[rowIndex, 1].Value = ExcelServiceConstants.NameLocalized;
             workSheet.Cells[rowIndex++, 2].Value = product.Name;

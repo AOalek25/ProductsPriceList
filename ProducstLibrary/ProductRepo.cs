@@ -49,7 +49,14 @@ namespace ProductLibrary
     }
     // Метод, возвращающий все объекты из репозитория.
     public IEnumerable<Product> GetAll() => this.list;
-    
+
+    public IEnumerable<Product> AddRange(IEnumerable<Product> items)
+    {
+      var distinctedList = items.Distinct();
+      this.list.AddRange(distinctedList);
+      return list;
+    }
+
     public void Clear() => this.list.Clear();
 
     public IEnumerable<Product> SortedByName()

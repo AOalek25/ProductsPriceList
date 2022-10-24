@@ -14,7 +14,7 @@ namespace ProductLibrary.Attributes
     public bool NotValid<T>(T item, out string errorMessage)
     {
       errorMessage = $"Название продукта менее двух символов или содержит пробелы, спецсимволы.";
-      Regex regex = new(@"[^a-zA-Zа-яА-Я1-9]");
+      Regex regex = new(@"[^a-zA-Zа-яА-Я1-9 ]");
       if (item is Product product)
         if (product.Name.Length >= minLenght) return (regex.IsMatch(product.Name));
         else return true;

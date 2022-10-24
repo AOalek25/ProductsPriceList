@@ -24,24 +24,23 @@
  <button class="btn btn-primary" @onclick="Add">Подтвердить</button> 
  <a href="pricelist" class="btn btn-primary">Назад</a> 
 
-@code {
-  public string id="";  
+@code {    
   public string name = "";
-  public string price;
+  public string price= "";
   public string manufacturer = "";
   ExcelService excelService = new(ExcelServiceConstants.BlazorData);
 
   internal async Task Add()
   {
-    if (ReadStringNotValid(name)) throw new ArgumentException(); 
-    if (ReadStringNotValid(manufacturer)) throw new ArgumentException(); 
-    if (ReadStringNotValid(price)) throw new ArgumentException();
+    if (ReadStringNotValid(name)) throw new ValidationException($"Значение наименования невалидно."); 
+    if (ReadStringNotValid(manufacturer)) throw new ValidationException($"Значение производителя невалидно.");
+    if (ReadStringNotValid(price)) throw new ValidationException($"Значение цены невалидно.");
     try
     {
       repo.Create(new Product(name, manufacturer, price));
       await excelService.SaveToFileAsync(repo.GetAll(), ExcelServiceConstants.BlazorData, ExcelServiceConstants.PriceListFileName);
     }
-    catch (ProductNotFoundException ex)
+    catch (ProductAlreadyExistException ex)
     { }
     this.NavigationManager.NavigateTo("/pricelist", true);
   }

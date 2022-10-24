@@ -15,7 +15,7 @@ namespace ExcelService
     public const string Manufacturer = "Manufacturer";
     public const string ManufacturerLocalized = "Производитель";
     public const string Price = "Price";
-    public const string PriceLocalized = "Цена";
+    public const string PriceLocalized = "Цена, руб.";
 
     public const string PriceListFileName = "PriceList.xlsx";
     public const string PriceListSheetName = "PriceList";
