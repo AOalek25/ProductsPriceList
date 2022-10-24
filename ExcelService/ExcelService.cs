@@ -98,8 +98,9 @@ namespace ExcelService
               barcodeStream.Position = 0;
               var barcodePicture = workSheet.Drawings.AddPicture(product.Id, barcodeStream, OfficeOpenXml.Drawing.ePictureType.Jpg);
               barcodePicture.SetSize(250, 100);
-              barcodePicture.SetPosition(rowIndex++, 0, 1, 0);
-            }
+              barcodePicture.SetPosition(rowIndex-1, 0, 1, 0);
+            }            
+            rowIndex++;
             workSheet.Cells[rowIndex, 1].Value = "Наименование";
             workSheet.Cells[rowIndex++, 2].Value = product.Name;
             workSheet.Cells[rowIndex, 1].Value = "Производитель";
@@ -111,7 +112,8 @@ namespace ExcelService
             workSheet.Cells[rowIndex++, 2].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Right;
             rowIndex++;
           }
-          workSheet.Cells[1, 1, workSheet.Dimension.Rows, workSheet.Dimension.Columns].AutoFitColumns();
+          workSheet.Column(1).AutoFit();
+          workSheet.Column(2).Width = 37.00D;
         }
         await excelPackage.SaveAsync();
       }      
