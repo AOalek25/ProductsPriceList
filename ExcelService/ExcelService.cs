@@ -116,7 +116,8 @@ namespace ExcelService
             workSheet.Cells[rowIndex++, 2].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Right;
             rowIndex++;
           }
-          workSheet.Cells[1, 1, workSheet.Dimension.Rows, workSheet.Dimension.Columns].AutoFitColumns();
+          workSheet.Column(1).AutoFit();
+          workSheet.Column(2).Width = 37.00D;
         }
         await excelPackage.SaveAsync();
       }      
