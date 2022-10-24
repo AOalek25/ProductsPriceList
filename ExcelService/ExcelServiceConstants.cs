@@ -8,6 +8,15 @@ namespace ExcelService
 {
   public class ExcelServiceConstants
   {
+    public const string Id = "Id";
+    public const string IdLocalized = "Идентификатор";
+    public const string Name = "Name";
+    public const string NameLocalized =  "Наименование";
+    public const string Manufacturer = "Manufacturer";
+    public const string ManufacturerLocalized = "Производитель";
+    public const string Price = "Price";
+    public const string PriceLocalized = "Цена";
+
     public const string PriceListFileName = "PriceList.xlsx";
     public const string PriceListSheetName = "PriceList";
     public const string NewPriceListFileName = "NewPriceList.xlsx";

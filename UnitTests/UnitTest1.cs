@@ -5,17 +5,25 @@ using RandomDataGenerator.FieldOptions;
 using ProductLibrary.Exceptions;
 using ExcelService;
 using OfficeOpenXml;
-using System.IO;
-using NUnit.Framework.Internal.Execution;
 
 namespace UnitTests
 {
   public class Tests
-  {    
+  {
+    private const string Manufacturer = "manufacturer" ;
+    private const string Price2_5 = "2,5";
+    private const string Price2_3 = "2,3";
+    private const string Price2_4 = "2,4";
+    private const string Price2_35 = "2,35";
+    private const string Product1 = "Product1";
+    private const string Product15 = "Product15";
+    private const string Product2 = "Product2";
+    private const string Item3 = "Item3";
+    private const string tooShortString = "a";
     private readonly ProductRepo repo=new();    
     private Product? testProduct;
     private Product? newTestProduct;
-    readonly Random decimalGenerator = new();
+    readonly Random intGenerator = new();
     private string? validName;
     private string? tooShortName;
     private string? unvalidName;
@@ -31,32 +39,41 @@ namespace UnitTests
     public void Setup()
     {
       var stringFactory = RandomizerFactory.GetRandomizer(new FieldOptionsText
-      { UseNumber = false, UseSpecial = false, UseSpace = false, Seed = 10 });
+                                                         { UseNumber = false, 
+                                                           UseSpecial = false, 
+                                                           UseSpace = false, 
+                                                           Seed = 10 });
       validName = stringFactory.Generate();
       validManufacturer = stringFactory.Generate();      
-      tooShortName = "a";
-      tooShortManufacturer = "a";
+      tooShortName = tooShortString;
+      tooShortManufacturer = tooShortString;
       var stringUnvalidFactory = RandomizerFactory.GetRandomizer(new FieldOptionsText
-      { UseNumber = true, UseSpecial = true, UseSpace = true, Seed = 10 });
+                                                                { UseNumber = true, 
+                                                                  UseSpecial = true, 
+                                                                  UseSpace = true, 
+                                                                  Seed = 10 });
       unvalidName = stringUnvalidFactory.Generate();
       unvalidManufacturer = stringUnvalidFactory.Generate();
-      validPrice = decimalGenerator.Next(0, int.MaxValue).ToString();
-      negativePrice = decimalGenerator.Next(int.MinValue, 0).ToString();
+      validPrice = (intGenerator.Next(0, int.MaxValue)/100).ToString();
+      negativePrice = (intGenerator.Next(int.MinValue, 0)/100).ToString();
       unvalidPrice = stringUnvalidFactory.Generate();
       if ((validName != null) && (validManufacturer != null) && (validPrice != null))
       {
         testProduct = new Product(validName, validManufacturer, validPrice);
-        newTestProduct = new Product("new" + validName, "new" + validManufacturer, validPrice);
+        newTestProduct = new Product($"new{validName}", $"new{validManufacturer}", validPrice);
       }
     }
 
     [Test]
     public void CreateProductTest()
-    {      
+    {
       if (testProduct != null)
         repo.Create(testProduct);
-      Assert.That(repo.GetAll().Any(x => x.Equals(testProduct)), Is.True);
-      Assert.That((repo.GetAll().Count() ==1), Is.True);
+      Assert.Multiple(() =>
+      {
+        Assert.That(repo.GetAll().Any(x => x.Equals(testProduct)), Is.True);
+        Assert.That((repo.GetAll().Count() == 1), Is.True);
+      });
     }
 
     [Test]
@@ -120,8 +137,11 @@ namespace UnitTests
       {
         repo.Create(testProduct);
         repo.Create(newTestProduct);
-        Assert.IsTrue(repo.GetAll().Any(x => x.Equals(testProduct)));
-        Assert.IsTrue(repo.GetAll().Any(x => x.Equals(newTestProduct)));
+        Assert.Multiple(() =>
+        {
+          Assert.That(repo.GetAll().Any(x => x.Equals(testProduct)), Is.True);
+          Assert.That(repo.GetAll().Any(x => x.Equals(newTestProduct)), Is.True);
+        });
       }
     }
 
@@ -137,11 +157,11 @@ namespace UnitTests
     [Test]
     public void ProductRepoSortedByNameTest()
     {
-      testProduct = new Product("product15", "vendor", "0");
+      testProduct = new Product(Product15, Manufacturer, Price2_5);
       repo.Create(testProduct);
-      repo.Create(new Product("product1", "vendor", "0"));      
-      repo.Create(new Product("product2", "vendor", "0"));
-      repo.Create(new Product("1product", "vendor", "0"));
+      repo.Create(new Product(Product1, Manufacturer, Price2_4));      
+      repo.Create(new Product(Product2, Manufacturer, Price2_3));
+      repo.Create(new Product(Item3, Manufacturer, Price2_35));
       repo.SortedByName();
       var list = repo.GetAll().ToList();
       Assert.That((list.Last().Equals(testProduct)), Is.True);
@@ -150,11 +170,11 @@ namespace UnitTests
     [Test]
     public void ProductRepoSortedByPriceTest()
     {
-      testProduct = new Product("product2", "vendor", "2,5");
+      testProduct = new Product(Product2, Manufacturer, Price2_5);
       repo.Create(testProduct);
-      repo.Create(new Product("product1", "vendor", "2,4"));
-      repo.Create(new Product("product15", "vendor", "2,3"));
-      repo.Create(new Product("1product", "vendor", "2,45"));
+      repo.Create(new Product(Product1, Manufacturer, Price2_4));
+      repo.Create(new Product(Product15, Manufacturer, Price2_3));
+      repo.Create(new Product(Item3, Manufacturer, Price2_35));
       repo.SortedtByPrice();
       var list = repo.GetAll().ToList();
       Assert.That((list.Last().Equals(testProduct)), Is.True);

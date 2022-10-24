@@ -1,6 +1,4 @@
 ﻿using System.Globalization;
-using System.Xml.Linq;
-
 using ProductLibrary.Attributes;
 using ProductLibrary.Exceptions;
 
@@ -10,7 +8,10 @@ namespace ProductLibrary.Model
   [ManufacturerValidator(2)]
   public class Product
   {
-    #region Поля и свойства        
+    #region Поля и свойства    
+    const string Undefined = "Undefined";
+    const string IncorrectPriceMessage = "Введено неверно значение цены.";
+    const string IncorrectIdMessage = "Введено неверное значение id.";
     private readonly Guid id;
     private decimal price;
     public string Id { get => this.id.ToString(); }        
@@ -26,7 +27,7 @@ namespace ProductLibrary.Model
       {
         if ((decimal.TryParse(value, out decimal decimalValue)) && (decimalValue >= 0))
           this.price = decimalValue;
-        else throw new ValidationException("Введено неверно значение цены.");
+        else throw new ValidationException(IncorrectPriceMessage);
       }
     }    
     #endregion
@@ -55,17 +56,16 @@ namespace ProductLibrary.Model
     {
       if (Guid.TryParse(id, out Guid idGuid))
         this.id = idGuid;
-      else throw new ValidationException("Введено неверное значение id.");
+      else throw new ValidationException(IncorrectIdMessage);
     }
 
     public Product()
     {
       this.id = Guid.NewGuid();
-      this.Name = "Undefined";
-      this.Manufacturer = "Undefined";
+      this.Name = Undefined;
+      this.Manufacturer = Undefined;
       this.price = 0m;
     }
-
     #endregion
   }  
 }

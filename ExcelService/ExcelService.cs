@@ -19,13 +19,15 @@ namespace ExcelService
     #endregion
 
     #region Методы.
-    public IEnumerable<Product> LoadFromFile(string directory, string customFileName = ExcelServiceConstants.PriceListFileName, string castomSheetName= ExcelServiceConstants.PriceListSheetName)
+    public IEnumerable<Product> LoadFromFile(string directory, 
+                                             string customFileName = ExcelServiceConstants.PriceListFileName, 
+                                             string customSheetName= ExcelServiceConstants.PriceListSheetName)
     {
       List<Product> items = new();
       ExcelPackage.LicenseContext = LicenseContext.NonCommercial;            
       using (var excelPackage = new ExcelPackage(Path.Combine(directory, customFileName)))
       {
-        ExcelWorksheet priceListSheet = excelPackage.Workbook.Worksheets[castomSheetName];
+        ExcelWorksheet priceListSheet = excelPackage.Workbook.Worksheets[customSheetName];
         var ColumnsInfo = Enumerable.Range(1, priceListSheet.Dimension.Columns).ToList().Select(n =>
                new { Index = n, Name = priceListSheet.Cells[1, n].Value.ToString() });
         for (int row = 2; row <= priceListSheet.Dimension.Rows; row++)
@@ -37,16 +39,16 @@ namespace ExcelService
           foreach (var column in ColumnsInfo)
             switch (column.Name)
             {
-              case "Id":
+              case ExcelServiceConstants.Id:
                 id = priceListSheet.Cells[row, column.Index].Value.ToString();
                 break;
-              case "Name":
+              case ExcelServiceConstants.Name:
                 name = priceListSheet.Cells[row, column.Index].Value.ToString();
                 break;
-              case "Manufacturer":
+              case ExcelServiceConstants.Manufacturer:
                 manufacturer = priceListSheet.Cells[row, column.Index].Value.ToString();
                 break;
-              case "Price":
+              case ExcelServiceConstants.Price:
                 price = priceListSheet.Cells[row, column.Index].Value.ToString();
                 break;
             }       
@@ -57,13 +59,16 @@ namespace ExcelService
       return items;
     }   
     
-    public async Task SaveToFileAsync (IEnumerable<Product> items, string directory, string customFileName= ExcelServiceConstants.PriceListFileName, string castomSheetName= ExcelServiceConstants.PriceListSheetName)
+    public async Task SaveToFileAsync (IEnumerable<Product> items, 
+                                       string directory,
+                                       string customFileName= ExcelServiceConstants.PriceListFileName,
+                                       string customSheetName= ExcelServiceConstants.PriceListSheetName)
     {    
       ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-      CreateFileAndSheetsIfNotExists(directory, customFileName, castomSheetName);
+      CreateFileAndSheetsIfNotExists(directory, customFileName, customSheetName);
       using (var excelPackage = new ExcelPackage(Path.Combine(directory, customFileName)))
       {
-        ExcelWorksheet workSheet = excelPackage.Workbook.Worksheets[castomSheetName];
+        ExcelWorksheet workSheet = excelPackage.Workbook.Worksheets[customSheetName];
         workSheet.Cells.Clear();
         workSheet.Cells["A1"].LoadFromCollection(items, true);
         var table = workSheet.Cells[1, 1, workSheet.Dimension.Rows, workSheet.Dimension.Columns];
@@ -89,7 +94,7 @@ namespace ExcelService
           int rowIndex = 1;
           foreach (Product product in list)
           {
-            workSheet.Cells[rowIndex, 1].Value = "Идентификатор";
+            workSheet.Cells[rowIndex, 1].Value = ExcelServiceConstants.IdLocalized;
             workSheet.Row(rowIndex).Height = 75.00D;
             var barcode = new Barcode(product.Id, NetBarcode.Type.Code128, true);
             var barcodeBuffer = barcode.GetByteArray();
@@ -100,11 +105,11 @@ namespace ExcelService
               barcodePicture.SetSize(250, 100);
               barcodePicture.SetPosition(rowIndex++, 0, 1, 0);
             }
-            workSheet.Cells[rowIndex, 1].Value = "Наименование";
+            workSheet.Cells[rowIndex, 1].Value = ExcelServiceConstants.NameLocalized;
             workSheet.Cells[rowIndex++, 2].Value = product.Name;
-            workSheet.Cells[rowIndex, 1].Value = "Производитель";
+            workSheet.Cells[rowIndex, 1].Value = ExcelServiceConstants.ManufacturerLocalized;
             workSheet.Cells[rowIndex++, 2].Value = product.Manufacturer;
-            workSheet.Cells[rowIndex, 1].Value = "Цена";
+            workSheet.Cells[rowIndex, 1].Value = ExcelServiceConstants.PriceLocalized;
             workSheet.Cells[rowIndex, 2].Value = product.Price;
             workSheet.Cells[rowIndex, 2].Style.Font.Bold = true;
             workSheet.Cells[rowIndex, 2].Style.Font.Size = 24;
@@ -117,7 +122,7 @@ namespace ExcelService
       }      
     }
 
-    private void CreateFileAndSheetsIfNotExists(string directory, string castomFileName="", string castomSheetName="")
+    private void CreateFileAndSheetsIfNotExists(string directory, string customFileName="", string customSheetName="")
     {
       ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
       using (var excelPackage = new ExcelPackage(Path.Combine(directory, ExcelServiceConstants.PriceListFileName)))
@@ -138,11 +143,11 @@ namespace ExcelService
         if (reportSheet == null) excelPackage.Workbook.Worksheets.Add(ExcelServiceConstants.ReportSheetName);
         excelPackage.Save();
       }
-      if ((string.IsNullOrEmpty(castomFileName)) || (string.IsNullOrEmpty(castomSheetName))) return;
-      using (var excelPackage = new ExcelPackage(Path.Combine(directory, castomFileName)))
+      if ((string.IsNullOrEmpty(customFileName)) || (string.IsNullOrEmpty(customSheetName))) return;
+      using (var excelPackage = new ExcelPackage(Path.Combine(directory, customFileName)))
       {
-        ExcelWorksheet workSheet = excelPackage.Workbook.Worksheets[castomSheetName];
-        if (workSheet == null) excelPackage.Workbook.Worksheets.Add(castomSheetName);
+        ExcelWorksheet workSheet = excelPackage.Workbook.Worksheets[customSheetName];
+        if (workSheet == null) excelPackage.Workbook.Worksheets.Add(customSheetName);
         excelPackage.Save();
       }
     }

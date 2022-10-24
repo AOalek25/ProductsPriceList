@@ -7,7 +7,7 @@ namespace ProductLibrary.Attributes
   [AttributeUsage(AttributeTargets.All)]
   public class ManufacturerValidator : Attribute
   {
-    const int DefaultMinLenght = 2;
+    const int defaultMinLenght = 2;
     public int minLenght;
     #region Методы.
     // Метод, валидирующий наименование производителя - должно быть более двух букв.
@@ -23,7 +23,7 @@ namespace ProductLibrary.Attributes
     #endregion
 
     #region Конструкторы.    
-    public ManufacturerValidator(int MinLenght = DefaultMinLenght) => this.minLenght = MinLenght;
+    public ManufacturerValidator(int minLenght = defaultMinLenght) => this.minLenght = minLenght;
     #endregion
   }
 }

@@ -7,7 +7,7 @@ namespace ProductLibrary.Attributes
   [AttributeUsage(AttributeTargets.All)]
   public class NameValidator : Attribute
   {
-    const int DefaultMinLenght = 2;
+    const int defaultMinLenght = 2;
     public int minLenght;    
     #region Методы.
     // Метод, валидирующий продукт по названию - должно быть более двух букв.
@@ -23,7 +23,7 @@ namespace ProductLibrary.Attributes
     #endregion
 
     #region Конструкторы.    
-    public NameValidator(int MinLenght= DefaultMinLenght) => this.minLenght = MinLenght;
+    public NameValidator(int minLenght= defaultMinLenght) => this.minLenght = minLenght;
     #endregion
   }
 }
