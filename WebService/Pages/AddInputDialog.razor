@@ -6,18 +6,19 @@
 
 @inject ProductRepo repo
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JS
 
 <h3>Введите данные.</h3>
 
 <div class="row">    
     <div class="col">
-      <input class="form-control" placeholder="Введите наименование" @bind="name"></input>
+      <input class="form-control" placeholder="Введите наименование" @bind="_name" required minlength="2"></input>
     </div>
     <div class="col">
-      <input class="form-control" placeholder="Введите производителя" @bind="manufacturer"></input>
+      <input class="form-control" placeholder="Введите производителя" @bind="_manufacturer" required minlength="2"></input>
     </div>
     <div class="col">
-      <input class="form-control" placeholder="Введите цену" @bind="price"></input>
+      <input class="form-control" placeholder="Введите цену" @bind="_price" required minlength="1"></input>
     </div>
  </div>
 
@@ -25,30 +26,30 @@
  <a href="pricelist" class="btn btn-primary">Назад</a> 
 
 @code {    
-  public string name = "";
-  public string price= "";
-  public string manufacturer = "";
-  ExcelService excelService = new(ExcelServiceConstants.BlazorData);
-
+  private string _name = "";
+  private string _price = "";
+  private string _manufacturer = "";
+  private ExcelService _excelService = new(ExcelServiceConstants.BlazorData);
+  
   internal async Task Add()
-  {
-    if (ReadStringNotValid(name)) throw new ValidationException($"Значение наименования невалидно."); 
-    if (ReadStringNotValid(manufacturer)) throw new ValidationException($"Значение производителя невалидно.");
-    if (ReadStringNotValid(price)) throw new ValidationException($"Значение цены невалидно.");
+  {    
     try
     {
-      repo.Create(new Product(name, manufacturer, price));
-      await excelService.SaveToFileAsync(repo.GetAll(), ExcelServiceConstants.BlazorData, ExcelServiceConstants.PriceListFileName);
+      repo.Create(new Product(_name, _manufacturer, _price));
+      await _excelService.SaveToFileAsync(repo.GetAll(), ExcelServiceConstants.BlazorData, ExcelServiceConstants.PriceListFileName);
+    }
+    catch (ValidationException ex)
+    {
+      await JS.InvokeVoidAsync("alert", ex.Message);
     }
     catch (ProductAlreadyExistException ex)
-    { }
+    { 
+      await JS.InvokeVoidAsync("alert", ex.Message);
+    }
+    catch (InvalidOperationException ex)
+    {
+      await JS.InvokeVoidAsync("alert", ex.Message);
+    }
     this.NavigationManager.NavigateTo("/pricelist", true);
-  }
-
-  static bool ReadStringNotValid(string param)
-  {
-    if (string.IsNullOrEmpty(param))
-      return true;
-    else return false;
   }
 }

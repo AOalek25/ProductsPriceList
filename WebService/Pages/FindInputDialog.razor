@@ -2,19 +2,19 @@
 @using ProductLibrary
 @using ProductLibrary.Model
 @using ProductLibrary.Exceptions
-@using ExcelService
 
 @inject ProductRepo repo
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JS
 
 <h3>Введите данные для поиска.</h3>
 
 <div class="row">
   <div class="col">
-    <input class="form-control" placeholder="Введите наименование" @bind="name"></input>
+    <input class="form-control" placeholder="Введите наименование" @bind="_name" required minlength="2"></input>
   </div>
   <div class="col">
-    <input class="form-control" placeholder="Введите производителя" @bind="manufacturer"></input>
+    <input class="form-control" placeholder="Введите производителя" @bind="_manufacturer" required minlength="2"></input>
   </div>
 </div>
 
@@ -31,41 +31,33 @@
     </tr>
   </thead>
   <tbody>    
-    @if (findedProduct!= null)
+    @if (_findedProduct!= null)
     {
     <tr>
-      <td>@findedProduct.Id</td>
-      <td>@findedProduct.Name</td>
-      <td>@findedProduct.Manufacturer</td>
-      <td>@findedProduct.Price</td>
+      <td>@_findedProduct.Id</td>
+      <td>@_findedProduct.Name</td>
+      <td>@_findedProduct.Manufacturer</td>
+      <td>@_findedProduct.Price</td>
     </tr>
     }
   </tbody>
 </table>
 
 @code {
-  public string name = "";
-  public string manufacturer = "";
-  ExcelService excelService = new(ExcelServiceConstants.BlazorData);  
-  Product? findedProduct;
+  private string _name = "";
+  private string _manufacturer = "";  
+  private Product? _findedProduct;
 
-  internal void Find()
+  internal async Task Find()
   {
-    findedProduct = null;
-    if (ReadStringNotValid(name)) throw new ValidationException($"Значение наименования невалидно.");
-    if (ReadStringNotValid(manufacturer)) throw new ValidationException($"Значение производителя невалидно.");
+    _findedProduct = null;
     try
-    {
-      findedProduct = repo.Read(name, manufacturer);      
-    }
+    {        
+      _findedProduct = repo.Read(_name, _manufacturer);      
+    }    
     catch (ProductNotFoundException ex)
-    { }    
-  }
-
-  static bool ReadStringNotValid(string param)
-  {
-    if (string.IsNullOrEmpty(param))
-      return true;
-    else return false;
+    { 
+      await JS.InvokeVoidAsync("alert", ex.Message);
+    }
   }
 }

@@ -7,10 +7,22 @@ namespace ProductLibrary.Attributes
   [AttributeUsage(AttributeTargets.All)]
   public class NameValidator : Attribute
   {
+    /// <summary>
+    /// Минимальная длина наименования продукта по умолчанию.
+    /// </summary>
     const int defaultMinLenght = 2;
-    public int minLenght;    
+    /// <summary>
+    /// Минимальная длина наименования продукта.
+    /// </summary>
+    public int minLenght;
     #region Методы.
-    // Метод, валидирующий продукт по названию - должно быть более двух букв.
+    /// <summary>
+    /// Метод, валидирующий продукт по названию - должно быть более двух букв.
+    /// </summary>
+    /// <typeparam name="T"> Тип передаваемого объекта для валидации. </typeparam>
+    /// <param name="item"> Передаваемый объект для валидации. </param>
+    /// <param name="errorMessage"> Сообщение валидации, если объект не валиден. </param>
+    /// <returns> Возвращает true, если объект невалиден, и false если валиден. </returns>
     public bool NotValid<T>(T item, out string errorMessage)
     {
       errorMessage = $"Название продукта менее двух символов или содержит пробелы, спецсимволы.";
@@ -23,6 +35,10 @@ namespace ProductLibrary.Attributes
     #endregion
 
     #region Конструкторы.    
+    /// <summary>
+    /// Конструктор.
+    /// </summary>
+    /// <param name="minLenght"> Аргумент, задающий минимальную длину наименования продукта. </param>
     public NameValidator(int minLenght= defaultMinLenght) => this.minLenght = minLenght;
     #endregion
   }

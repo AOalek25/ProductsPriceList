@@ -25,9 +25,9 @@ else
    <button class="btn btn-primary" @onclick="SortByName">Сортировать по названию</button>
    <button class="btn btn-primary" @onclick="SortByPrice">Сортировать по цене</button>
    <p></p>
-   <WebService.Pages.UploadFile @ref="Modal"></WebService.Pages.UploadFile>
-   <button class="btn btn-primary" @onclick="() => Modal?.UploadNewFile()">Загрузить новый файл</button>
-   <button class="btn btn-primary" @onclick="() => Modal?.GenerateReport()">Отчет об измененнии цен</button>
+   <WebService.Pages.UploadFile @ref="_modal"></WebService.Pages.UploadFile>
+   <button class="btn btn-primary" @onclick="() => _modal?.UploadNewFile()">Загрузить новый файл</button>
+   <button class="btn btn-primary" @onclick="() => _modal?.GenerateReport()">Отчет об измененнии цен</button>
    <button class="btn btn-primary" @onclick="PrintPriceTags">Файл с ценниками</button>
      
   <table class="table">
@@ -40,7 +40,7 @@ else
       </tr>
     </thead>
     <tbody>
-      @foreach (var product in list)
+      @foreach (var product in _list)
       {
         <tr>
           <td>@product.Id</td>          
@@ -55,25 +55,27 @@ else
 }
 
 @code {
-  private WebService.Pages.UploadFile? Modal { get; set; }  
-  public string id="";  
-  public string name = "";
-  public string manufacturer = "";
-  public decimal price;  
-  ExcelService excelService = new(ExcelServiceConstants.BlazorData);
-  List<Product> list = new();
+  private WebService.Pages.UploadFile? _modal { get; set; }   
+  private ExcelService _excelService = new(ExcelServiceConstants.BlazorData);
+  private List<Product> _list = new();
 
   protected override async Task OnInitializedAsync()
   {
     repo.Clear();
     try
     {
-      var listFromfile = excelService.LoadFromFile(ExcelServiceConstants.BlazorData);
+      var listFromfile = _excelService.LoadFromFile(ExcelServiceConstants.BlazorData);
       repo.AddRange(listFromfile);
     }
-    catch (IOException ex)
-    { }    
-    list = repo.GetAll().ToList();
+    catch (ValidationException ex)
+    { 
+      await JS.InvokeVoidAsync("alert", ex.Message); 
+    }
+    catch (InvalidOperationException ex)
+    { 
+      await JS.InvokeVoidAsync("alert", ex.Message);
+    }
+    _list = repo.GetAll().ToList();
     await Task.CompletedTask;
   }
 
@@ -81,10 +83,17 @@ else
   {
     try
     {
-      await excelService.SaveToFileAsync(repo.SortedByName(), ExcelServiceConstants.BlazorData);
+      var sortedList = repo.SortedByName();
+      await _excelService.SaveToFileAsync(sortedList, ExcelServiceConstants.BlazorData);
     }
-    catch (IOException ex)
-    { }
+    catch (ValidationException ex)
+    {
+      await JS.InvokeVoidAsync("alert", ex.Message);
+    }
+    catch (InvalidOperationException ex)
+    { 
+      await JS.InvokeVoidAsync("alert", ex.Message);
+    }
     await OnInitializedAsync();
   }
 
@@ -92,10 +101,17 @@ else
   {
     try
     {
-      await excelService.SaveToFileAsync(repo.SortedtByPrice(), ExcelServiceConstants.BlazorData);
+      var sortedList = repo.SortedtByPrice();
+      await _excelService.SaveToFileAsync(sortedList, ExcelServiceConstants.BlazorData);
     }
-    catch (IOException ex)
-    { }
+    catch (ValidationException ex)
+    {
+      await JS.InvokeVoidAsync("alert", ex.Message);
+    }
+    catch (InvalidOperationException ex)
+    { 
+      await JS.InvokeVoidAsync("alert", ex.Message);
+    }
     await OnInitializedAsync();
   }
 
@@ -103,12 +119,19 @@ else
   {
     try
     {
-      await excelService.PrintAllPriceTagsAsync(repo.GetAll(), ExcelServiceConstants.BlazorData);
-      var fileStream = File.OpenRead("Data/PriceTags.xlsx");
+      await _excelService.PrintAllPriceTagsAsync(repo.GetAll(), ExcelServiceConstants.BlazorData);
+      var PriceTagsFilePath = Path.Combine(ExcelServiceConstants.BlazorData, ExcelServiceConstants.PriceTagsFileName);
+      var fileStream = File.OpenRead(PriceTagsFilePath);
       using var streamRef = new DotNetStreamReference(stream: fileStream);
       await JS.InvokeVoidAsync("downloadFileFromStream", ExcelServiceConstants.PriceTagsFileName, streamRef);
     }
-    catch (IOException ex)
-    { }    
+    catch (FileNotFoundException ex)
+    {
+      await JS.InvokeVoidAsync("alert", ex.Message);
+    }
+    catch (InvalidOperationException ex)
+    { 
+      await JS.InvokeVoidAsync("alert", ex.Message);
+    }
    }  
 }

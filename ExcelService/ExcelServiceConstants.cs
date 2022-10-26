@@ -27,10 +27,6 @@ namespace ExcelService
     public const string ReportFileName = "Report.xlsx";
     public const string ReportSheetName = "ChangedPrices";
 
-    public const string BlazorData = "Data/";
-
-    public static readonly string PriceListFilePath = Path.Combine(Environment.CurrentDirectory, PriceListFileName);
-    public static readonly string PriceTagsFilePath = Path.Combine(Environment.CurrentDirectory, PriceTagsFileName);
-    public static readonly string ReportFilePath = Path.Combine(Environment.CurrentDirectory, ReportFileName);
+    public const string BlazorData = "Data/"; 
   }
 }

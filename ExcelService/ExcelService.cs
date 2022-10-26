@@ -5,20 +5,19 @@ using LicenseContext = OfficeOpenXml.LicenseContext;
 
 namespace ExcelService
 {
+  /// <summary>
+  /// Сервисный класс для работы с Excel.
+  /// </summary>
   public class ExcelService
   {
-    #region Конструкторы.
-    public ExcelService (string directory)
-    {
-      if ((!File.Exists(Path.Combine(directory, ExcelServiceConstants.PriceListFileName)))
-          && (!File.Exists(Path.Combine(directory, ExcelServiceConstants.PriceTagsFileName))) 
-          && (!File.Exists(Path.Combine(directory, ExcelServiceConstants.ReportFileName)))
-         )
-        CreateFileAndSheetsIfNotExists(directory);
-    }
-    #endregion
-
     #region Методы.
+    /// <summary>
+    /// Метод для добавления продуктов из файла Excel в коллекцию продуктов.
+    /// </summary>
+    /// <param name="directory"> Путь до директории с рабочими файлами Excel. </param>
+    /// <param name="customFileName"> Название файла со списком продуктов. </param>
+    /// <param name="customSheetName"> Название листа со списком продуктов. </param>
+    /// <returns> Возвращает IEnumerable-коллекцию продуктов.</returns>
     public IEnumerable<Product> LoadFromFile(string directory, 
                                              string customFileName = ExcelServiceConstants.PriceListFileName, 
                                              string customSheetName= ExcelServiceConstants.PriceListSheetName)
@@ -57,8 +56,15 @@ namespace ExcelService
         }        
       }
       return items;
-    }   
-    
+    }
+    /// <summary>
+    /// Метод для сохранения коллекции продуктов в файл Excel.
+    /// </summary>
+    /// <param name="items"> Передаваемая коллекция продуктов. </param>
+    /// <param name="directory"> Путь до директории с рабочими файлами Excel. </param>
+    /// <param name="customFileName"> Название файла со списком продуктов. </param>
+    /// <param name="customSheetName"> Название листа со списком продуктов. </param>
+    /// <returns> Возвращает async Task. </returns>
     public async Task SaveToFileAsync (IEnumerable<Product> items, 
                                        string directory,
                                        string customFileName= ExcelServiceConstants.PriceListFileName,
@@ -79,7 +85,12 @@ namespace ExcelService
         await excelPackage.SaveAsync();        
       }      
     }
-
+    /// <summary>
+    /// Метод для формирования и сохранения в файл Excel ценников всех продуктов из коллекции.
+    /// </summary>
+    /// <param name="list"> Передаваемая коллекция продуктов. </param>
+    /// <param name="directory"> Путь до директории с рабочими файлами Excel. </param>
+    /// <returns> Возвращает async Task. </returns>
     public async Task PrintAllPriceTagsAsync(IEnumerable<Product> list, string directory)
     {   
       ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -123,7 +134,12 @@ namespace ExcelService
         await excelPackage.SaveAsync();
       }      
     }
-
+    /// <summary>
+    ////Метод для создания раобчих файлов и листов Excel.
+    /// </summary>
+    /// <param name="directory"> Путь до директории с рабочими файлами Excel. </param>
+    /// <param name="customFileName"> Название файла со списком продуктов. </param>
+    /// <param name="customSheetName"> Название листа со списком продуктов. </param>
     private void CreateFileAndSheetsIfNotExists(string directory, string customFileName="", string customSheetName="")
     {
       ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -152,6 +168,21 @@ namespace ExcelService
         if (workSheet == null) excelPackage.Workbook.Worksheets.Add(customSheetName);
         excelPackage.Save();
       }
+    }
+    #endregion
+
+    #region Конструкторы.
+    /// <summary>
+    /// Конструктор сервисного класса Excel.
+    /// </summary>
+    /// <param name="directory"> Путь до директории с рабочими файлами Excel. </param>
+    public ExcelService(string directory)
+    {
+      if ((!File.Exists(Path.Combine(directory, ExcelServiceConstants.PriceListFileName)))
+          && (!File.Exists(Path.Combine(directory, ExcelServiceConstants.PriceTagsFileName)))
+          && (!File.Exists(Path.Combine(directory, ExcelServiceConstants.ReportFileName)))
+         )
+        CreateFileAndSheetsIfNotExists(directory);
     }
     #endregion
   }

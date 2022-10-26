@@ -4,67 +4,95 @@ using ProductLibrary.Exceptions;
 
 namespace ProductLibrary.Model
 {
+  /// <summary>
+  /// Класс "Продукт".
+  /// </summary>
   [NameValidator(2)]
   [ManufacturerValidator(2)]
   public class Product
   {
-    #region Поля и свойства    
-    const string Undefined = "Undefined";
+    #region Поля и свойства            
     const string IncorrectPriceMessage = "Введено неверно значение цены.";
     const string IncorrectIdMessage = "Введено неверное значение id.";
-    private readonly Guid id;
-    private decimal price;
-    public string Id { get => this.id.ToString(); }        
+    /// <summary>
+    /// Идентификатор продукта, присваивается только при создании объекта.
+    /// </summary>
+    private readonly Guid _id;
+    /// <summary>
+    /// Цена продукта.
+    /// </summary>
+    private decimal _price;
+    /// <summary>
+    /// Строковое свойство для идентификатора продукта.
+    /// </summary>
+    public string Id { get => this._id.ToString(); }        
+    /// <summary>
+    /// Наименование пордукта.
+    /// </summary>
     public string Name { get; set; }    
-    public string Manufacturer { get; set; }    
+    /// <summary>
+    /// Наименование производителя продукта.
+    /// </summary>
+    public string Manufacturer { get; set; }   
+    /// <summary>
+    /// Строковое свойство для цены продукта. Возвращает цену в культуре клиента.
+    /// </summary>
     public string Price 
     {
       get
       { 
-        return string.Format(CultureInfo.CurrentCulture, "{0:f2}", this.price); 
+        return string.Format(CultureInfo.CurrentCulture, "{0:f2}", this._price); 
       }      
       set
       {
         if ((decimal.TryParse(value, out decimal decimalValue)) && (decimalValue >= 0))
-          this.price = decimalValue;
+          this._price = decimalValue;
         else throw new ValidationException(IncorrectPriceMessage);
       }
-    }    
+    }
     #endregion
 
     #region Методы
-    public int CompareTo(object? obj)
-    {
-      if (obj is Product product) return product.ToString().CompareTo(this.Name);
-      else return 1;
-    }
-    public override bool Equals(object? obj) => (obj is Product product) && (this.ToString() == product.ToString());        
-    public string PrintInfo() => $"{Id} {Name} {Manufacturer} {Price}";    
-    public override string ToString() => $"{Name} {Manufacturer}";       
-    public override int GetHashCode() => this.PrintInfo().GetHashCode();            
+    /// <summary>
+    /// Метод для определения равны ли два объекта.
+    /// </summary>
+    /// <param name="obj"> Передаваемый объект для сравнения с текущим. </param>
+    /// <returns> Возвращает true, если объекты равны, и false, если не равны. </returns>
+    public override bool Equals(object? obj) => (obj is Product product) && (this.ToString() == product.ToString());   
+    /// <summary>
+    /// Метод для строкового представления объекта.
+    /// </summary>
+    /// <returns> Возвращает строку с наименованием продукта и производителем. </returns>
+    public override string ToString() => $"{Name} {Manufacturer}";                      
     #endregion
 
     #region Конструкторы        
+    /// <summary>
+    /// Конструктор, принимающий три параметра(наименование, производитель, цена). Идентификатор задается автоматически.
+    /// </summary>
+    /// <param name="name"> Наименование продукта. </param>
+    /// <param name="manufacturer"> ПРоизводитель продукта. </param>
+    /// <param name="price"> Цена продукта. </param>
     public Product(string name, string manufacturer, string price)
     { 
-      this.id = Guid.NewGuid();            
+      this._id = Guid.NewGuid();            
       this.Name = name;
       this.Manufacturer = manufacturer;
       this.Price = price;
     }
+    /// <summary>
+    /// Конструктор, принимающий четыре параметра (идентификатор, наименование продукта, производитель, цена).
+    /// </summary>
+    /// <param name="id"> Идентификатор продукта. </param>
+    /// <param name="name"> Наименование продукта. </param>
+    /// <param name="manufacturer"> Производитель продукта. </param>
+    /// <param name="price"> Цена продукта. </param>
+    /// <exception cref="ValidationException"> Исключение, выбрасываемое при невалидном аргументе "идентификатор". </exception>
     public Product(string id, string name, string manufacturer, string price) : this(name, manufacturer, price)
     {
       if (Guid.TryParse(id, out Guid idGuid))
-        this.id = idGuid;
+        this._id = idGuid;
       else throw new ValidationException(IncorrectIdMessage);
-    }
-
-    public Product()
-    {
-      this.id = Guid.NewGuid();
-      this.Name = Undefined;
-      this.Manufacturer = Undefined;
-      this.price = 0m;
     }
     #endregion
   }  

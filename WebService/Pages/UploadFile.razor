@@ -4,19 +4,15 @@
 @using ProductLibrary.Model
 
 @inject NavigationManager NavigationManager
-@inject ProductRepo repo
 @inject IJSRuntime JS
 
-<div class="modal @ModalClass" tabindex="-1" role="dialog" style="display:@ModalDisplay">
+<div class="modal @_modalClass" tabindex="-1" role="dialog" style="display:@_modalDisplay">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Загрузка файла</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+              <h5 class="modal-title">Загрузка файла</h5>                
             </div>
-            <InputFile OnChange="@SingleUpload" />      
+            <InputFile OnChange="@SingleUpload" required minlength="2" />
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" @onclick="@Accept">Подтвердить</button>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="() => Close()">Отмена</button>                                 
@@ -25,40 +21,40 @@
     </div>
 </div>
 
-@if (ShowBackdrop)
+@if (_showBackdrop)
 {
     <div class="modal-backdrop fade show"></div>
 }
 
 @code {
-  public string ModalDisplay = "none;";
-  public string ModalClass = "";
-  public bool generateReport = false;
-  public bool ShowBackdrop = false;
-  ExcelService excelService = new(ExcelServiceConstants.BlazorData);
+  private string _modalDisplay = "none;";
+  private string _modalClass = "";
+  private bool _generateReport = false;
+  private bool _showBackdrop = false;
+  private ExcelService _excelService = new(ExcelServiceConstants.BlazorData);
 
   public void UploadNewFile()
   {    
-    ModalDisplay = "block;";
-    ModalClass = "Show";
-    ShowBackdrop = true;
+    _modalDisplay = "block;";
+    _modalClass = "Show";
+    _showBackdrop = true;
     StateHasChanged();
   }
 
   public void GenerateReport()
   {
-    generateReport = true;
-    ModalDisplay = "block;";
-    ModalClass = "Show";
-    ShowBackdrop = true;
+    _generateReport = true;
+    _modalDisplay = "block;";
+    _modalClass = "Show";
+    _showBackdrop = true;
     StateHasChanged();
   }
 
   public void Close()
   {
-    ModalDisplay = "none";
-    ModalClass = "";
-    ShowBackdrop = false;
+    _modalDisplay = "none";
+    _modalClass = "";
+    _showBackdrop = false;
     StateHasChanged();    
   }
 
@@ -73,13 +69,19 @@
       await fs.WriteAsync(bytes, 0, bytes.Length);
       fs.Close();
     }
-    catch (IOException ex)
-    { }
+    catch (FileNotFoundException ex)
+    {
+      await JS.InvokeVoidAsync("alert", ex.Message);
+    }
+    catch (InvalidOperationException ex)
+    { 
+      await JS.InvokeVoidAsync("alert", ex.Message);
+    }
   }
 
   private async Task Accept()
   {
-    if (generateReport)
+    if (_generateReport)
     {
       List<Product> products = new();
       List<Product> newProducts = new();
@@ -88,27 +90,28 @@
       var NewPriceListFilePath = Path.Combine(ExcelServiceConstants.BlazorData, ExcelServiceConstants.NewPriceListFileName);
       try
       {
-        products = excelService.LoadFromFile(ExcelServiceConstants.BlazorData).ToList();        
+        products = _excelService.LoadFromFile(ExcelServiceConstants.BlazorData).ToList();
         if (File.Exists(NewPriceListFilePath))
-          newProducts = excelService.LoadFromFile(ExcelServiceConstants.BlazorData, ExcelServiceConstants.NewPriceListFileName).ToList();
-        else throw new FileNotFoundException("Файл NewProductsPriceList не найден");
-      }
-      catch (IOException ex)
-      { }
-      foreach (Product product in products)
-        foreach (Product newProduct in newProducts)
-          if ((product.Name == newProduct.Name) && (product.Manufacturer == newProduct.Manufacturer) && (product.Price != newProduct.Price))
-            comparisonResult.Add(newProduct);
-          else continue;
-      try
-      {
-        await excelService.SaveToFileAsync(comparisonResult, ExcelServiceConstants.BlazorData, ExcelServiceConstants.ReportFileName, ExcelServiceConstants.ReportSheetName);
+          newProducts = _excelService.LoadFromFile(ExcelServiceConstants.BlazorData, ExcelServiceConstants.NewPriceListFileName).ToList();
+        else throw new FileNotFoundException();
+        foreach (Product product in products)
+          foreach (Product newProduct in newProducts)
+            if ((product.Name == newProduct.Name) && (product.Manufacturer == newProduct.Manufacturer) && (product.Price != newProduct.Price))
+              comparisonResult.Add(newProduct);
+            else continue;
+        await _excelService.SaveToFileAsync(comparisonResult, ExcelServiceConstants.BlazorData, ExcelServiceConstants.ReportFileName, ExcelServiceConstants.ReportSheetName);
         var fileStream = File.OpenRead(ReportFilePath);
         using var streamRef = new DotNetStreamReference(stream: fileStream);
         await JS.InvokeVoidAsync("downloadFileFromStream", ExcelServiceConstants.ReportFileName, streamRef);
       }
-      catch (IOException ex)
-      { }
+      catch (FileNotFoundException ex)
+      {
+        await JS.InvokeVoidAsync("alert", ex.Message);
+      }
+      catch (InvalidOperationException ex)
+      {
+        await JS.InvokeVoidAsync("alert", ex.Message);
+      }
       this.NavigationManager.NavigateTo("/pricelist", true);
     }
     else
@@ -120,8 +123,14 @@
         File.Copy(src, dest, true);
         File.Delete(src);
       }
-      catch (IOException ex)
-      { }              
+      catch (FileNotFoundException ex)
+      {
+        await JS.InvokeVoidAsync("alert", ex.Message);
+      }
+      catch (InvalidOperationException ex)
+      { 
+        await JS.InvokeVoidAsync("alert", ex.Message);
+      }
       this.NavigationManager.NavigateTo("/pricelist", true);
     }
   }

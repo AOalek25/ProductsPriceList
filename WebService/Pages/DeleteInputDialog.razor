@@ -6,15 +6,16 @@
 
 @inject ProductRepo repo
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JS
 
 <h3>Введите данные для удаления.</h3>
 
 <div class="row">
   <div class="col">
-    <input class="form-control" placeholder="Введите наименование" @bind="name"></input>
+    <input class="form-control" placeholder="Введите наименование" @bind="_name" required minlength="2"></input>
   </div>
   <div class="col">
-    <input class="form-control" placeholder="Введите производителя" @bind="manufacturer"></input>
+    <input class="form-control" placeholder="Введите производителя" @bind="_manufacturer" required minlength="2"></input>
   </div>  
 </div>
 
@@ -22,28 +23,25 @@
 <a href="pricelist" class="btn btn-primary">Назад</a>
 
 @code {  
-  public string name = "";  
-  public string manufacturer = "";
-  ExcelService excelService = new(ExcelServiceConstants.BlazorData);
+  private string _name = "";  
+  private string _manufacturer = "";
+  private ExcelService _excelService = new(ExcelServiceConstants.BlazorData);
 
   internal async Task Delete()
-  {
-    if (ReadStringNotValid(name)) throw new ValidationException($"Значение наименования невалидно.");
-    if (ReadStringNotValid(manufacturer)) throw new ValidationException($"Значение производителя невалидно.");    
+  {   
     try
     {
-      repo.Delete(name, manufacturer);
-      await excelService.SaveToFileAsync(repo.GetAll(), ExcelServiceConstants.BlazorData, ExcelServiceConstants.PriceListFileName);
+      repo.Delete(_name, _manufacturer);
+      await _excelService.SaveToFileAsync(repo.GetAll(), ExcelServiceConstants.BlazorData, ExcelServiceConstants.PriceListFileName);
+    }
+    catch (InvalidOperationException ex)
+    {
+      await JS.InvokeVoidAsync("alert", ex.Message);
     }
     catch (ProductNotFoundException ex)
-    { }
+    { 
+      await JS.InvokeVoidAsync("alert", ex.Message);
+    }
     this.NavigationManager.NavigateTo("/pricelist", true);
-  }
-
-  static bool ReadStringNotValid(string param)
-  {
-    if (string.IsNullOrEmpty(param))
-      return true;
-    else return false;
   }
 }
