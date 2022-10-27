@@ -134,6 +134,12 @@ namespace ExcelService
         await excelPackage.SaveAsync();
       }      
     }
+    /// <summary>
+    /// Метод, генерирующий отчет об изменении цен из сравнения двух файлов прайс-листов (старый и новый).
+    /// </summary>
+    /// <param name="directory"> Путь до дректории с рабочими файлами Excel. </param>
+    /// <returns> Возвращает async Task. </returns>
+    /// <exception cref="FileNotFoundException"> Если нет нового файла прайс-листа, то вырасывается исключение.  </exception>
     public async Task GenerateReport(string directory)
     {
       List<Product> products = new();
