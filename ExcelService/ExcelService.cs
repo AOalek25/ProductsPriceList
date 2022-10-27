@@ -1,157 +1,189 @@
 ﻿using NetBarcode;
 using OfficeOpenXml;
-using System.Globalization;
-using Type = System.Type;
+using ProductLibrary.Model;
+using LicenseContext = OfficeOpenXml.LicenseContext;
 
 namespace ExcelService
 {
-  public class ExcelService<T> where T: notnull, ProducstLibrary.Model.IProduct
+  /// <summary>
+  /// Сервисный класс для работы с Excel.
+  /// </summary>
+  public class ExcelService
   {
-    #region Конструкторы.
-    public ExcelService (string directory, string fileName= ExcelServiceConstants.DefaultExcelFileName)
-    {
-      if (!File.Exists(ExcelServiceConstants.ExcelFilePath))
-        this.AddFileAndSheetsIfNotExists(directory: Environment.CurrentDirectory);
-    }
-    #endregion
-
     #region Методы.
-    public IEnumerable<T> LoadFromFile(string directory , string excelFileName= ExcelServiceConstants.DefaultExcelFileName)
+    /// <summary>
+    /// Метод для добавления продуктов из файла Excel в коллекцию продуктов.
+    /// </summary>
+    /// <param name="directory"> Путь до директории с рабочими файлами Excel. </param>
+    /// <param name="customFileName"> Название файла со списком продуктов. </param>
+    /// <param name="customSheetName"> Название листа со списком продуктов. </param>
+    /// <returns> Возвращает IEnumerable-коллекцию продуктов.</returns>
+    public IEnumerable<Product> LoadFromFile(string directory, 
+                                             string customFileName = ExcelServiceConstants.PriceListFileName, 
+                                             string customSheetName= ExcelServiceConstants.PriceListSheetName)
     {
-      List<T> items = new List<T>();
-      ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-      string ExcelFilePath = Path.Combine(directory, excelFileName);      
-      this.AddFileAndSheetsIfNotExists(directory);
-      using (var excelPackage = new ExcelPackage(ExcelFilePath))
+      List<Product> items = new();
+      ExcelPackage.LicenseContext = LicenseContext.NonCommercial;            
+      using (var excelPackage = new ExcelPackage(Path.Combine(directory, customFileName)))
       {
-        ExcelWorksheet priceListSheet = excelPackage.Workbook.Worksheets[ExcelServiceConstants.DefaultPriceListSheetName];
-        if (priceListSheet.Cells[1, 1].Value != null)
+        ExcelWorksheet priceListSheet = excelPackage.Workbook.Worksheets[customSheetName];
+        var ColumnsInfo = Enumerable.Range(1, priceListSheet.Dimension.Columns).ToList().Select(n =>
+               new { Index = n, Name = priceListSheet.Cells[1, n].Value.ToString() });
+        for (int row = 2; row <= priceListSheet.Dimension.Rows; row++)
         {
-          var columnInfo = Enumerable.Range(1, priceListSheet.Dimension.Columns).ToList().Select(n =>
-                  new { Index = n, ColumnName = priceListSheet.Cells[1, n].Value.ToString() });
-          for (int row = 2; row <= priceListSheet.Dimension.Rows; row++)
-          {
-            Type type = Type.GetType(priceListSheet.Cells[row, 2].Value.ToString());
-            T obj = (T)Activator.CreateInstance(type);
-            foreach (var prop in typeof(T).GetProperties())
+          string? id = string.Empty;
+          string? name = string.Empty; 
+          string? manufacturer = string.Empty;
+          string? price = string.Empty;
+          foreach (var column in ColumnsInfo)
+            switch (column.Name)
             {
-              int col = columnInfo.SingleOrDefault(c => c.ColumnName == prop.Name).Index;
-              var val = priceListSheet.Cells[row, col].Value;
-              var propType = prop.PropertyType;
-              if (propType.Name == "Guid") prop.SetValue(obj, Guid.Parse(val.ToString()));
-              else prop.SetValue(obj, Convert.ChangeType(val, propType));
-            }
-            items.Add(obj);
-          }
-        }
+              case ExcelServiceConstants.Id:
+                id = priceListSheet.Cells[row, column.Index].Value.ToString();
+                break;
+              case ExcelServiceConstants.Name:
+                name = priceListSheet.Cells[row, column.Index].Value.ToString();
+                break;
+              case ExcelServiceConstants.Manufacturer:
+                manufacturer = priceListSheet.Cells[row, column.Index].Value.ToString();
+                break;
+              case ExcelServiceConstants.Price:
+                price = priceListSheet.Cells[row, column.Index].Value.ToString();
+                break;
+            }       
+          if ((id != null) && (name != null) && (manufacturer != null) && (price != null))
+            items.Add(new Product(id, name, manufacturer, price));
+        }        
       }
       return items;
-    }    
-
-    public void SaveToFile(IEnumerable<T> items, string sheetName)
+    }
+    /// <summary>
+    /// Метод для сохранения коллекции продуктов в файл Excel.
+    /// </summary>
+    /// <param name="items"> Передаваемая коллекция продуктов. </param>
+    /// <param name="directory"> Путь до директории с рабочими файлами Excel. </param>
+    /// <param name="customFileName"> Название файла со списком продуктов. </param>
+    /// <param name="customSheetName"> Название листа со списком продуктов. </param>
+    /// <returns> Возвращает async Task. </returns>
+    public async Task SaveToFileAsync (IEnumerable<Product> items, 
+                                       string directory,
+                                       string customFileName= ExcelServiceConstants.PriceListFileName,
+                                       string customSheetName= ExcelServiceConstants.PriceListSheetName)
     {    
       ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-      this.AddFileAndSheetsIfNotExists(directory: Environment.CurrentDirectory);
-      using (var excelPackage = new ExcelPackage(ExcelServiceConstants.ExcelFilePath))
+      CreateFileAndSheetsIfNotExists(directory, customFileName, customSheetName);
+      using (var excelPackage = new ExcelPackage(Path.Combine(directory, customFileName)))
       {
-        ExcelWorksheet workSheet = excelPackage.Workbook.Worksheets[sheetName];
+        ExcelWorksheet workSheet = excelPackage.Workbook.Worksheets[customSheetName];
         workSheet.Cells.Clear();
         workSheet.Cells["A1"].LoadFromCollection(items, true);
         var table = workSheet.Cells[1, 1, workSheet.Dimension.Rows, workSheet.Dimension.Columns];
         foreach (var cell in table) cell.Style.Border.BorderAround(OfficeOpenXml.Style.ExcelBorderStyle.Medium);                       
         table.AutoFitColumns();
         workSheet.Cells[1, 1, 1, workSheet.Dimension.Columns].Style.Font.Bold = true;
-        workSheet.Cells[1, 1, 1, workSheet.Dimension.Columns].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
-        var priceColumn = Enumerable.Range(1, workSheet.Dimension.Columns).ToList().Select(n =>
-                new { Index = n, ColumnName = workSheet.Cells[1, n].Value.ToString() }).SingleOrDefault(c => c.ColumnName == "Price");
-        workSheet.Cells[1, priceColumn.Index, workSheet.Dimension.Rows, priceColumn.Index].Style.Numberformat.Format = "#,##0.00";        
-        try
-        {
-          excelPackage.Save();
-        }
-        catch (InvalidOperationException ex)
-        {
-          Console.WriteLine($"Неуспешно, файл недоступен. {ex}");
-        }
-      }
+        workSheet.Cells[1, 1, 1, workSheet.Dimension.Columns].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;   
+        await excelPackage.SaveAsync();        
+      }      
     }
-
-    public void PrintAllPriceTags()
+    /// <summary>
+    /// Метод для формирования и сохранения в файл Excel ценников всех продуктов из коллекции.
+    /// </summary>
+    /// <param name="list"> Передаваемая коллекция продуктов. </param>
+    /// <param name="directory"> Путь до директории с рабочими файлами Excel. </param>
+    /// <returns> Возвращает async Task. </returns>
+    public async Task PrintAllPriceTagsAsync(IEnumerable<Product> list, string directory)
     {   
       ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-      this.AddFileAndSheetsIfNotExists(directory: Environment.CurrentDirectory);
-      using (var excelPackage = new ExcelPackage(ExcelServiceConstants.ExcelFilePath))
+      CreateFileAndSheetsIfNotExists(directory);
+      using (var excelPackage = new ExcelPackage(Path.Combine(directory, ExcelServiceConstants.PriceTagsFileName)))
       {
-        ExcelWorksheet workSheet = excelPackage.Workbook.Worksheets[ExcelServiceConstants.DefaultPriceTagsSheetName];
-        ExcelWorksheet priceListSheet = excelPackage.Workbook.Worksheets[ExcelServiceConstants.DefaultPriceListSheetName];
-        workSheet.Cells.Clear();
-        workSheet.Drawings.Clear();
-        var columnInfo = Enumerable.Range(1, priceListSheet.Dimension.Columns).ToList().Select(n =>
-                new { Index = n, ColumnName = priceListSheet.Cells[1, n].Value.ToString() });
-        int rowIndex = 1;
-        for (int row = 2; row <= priceListSheet.Dimension.Rows; row++)
+        ExcelWorksheet workSheet = excelPackage.Workbook.Worksheets[ExcelServiceConstants.PriceTagsSheetName];
+        if (workSheet != null)
         {
-          Type type = Type.GetType(priceListSheet.Cells[row, 2].Value.ToString());
-          T obj = (T)Activator.CreateInstance(type);
-          foreach (var prop in typeof(T).GetProperties())
+          workSheet.Cells.Clear();
+          workSheet.Drawings.Clear();
+          int rowIndex = 1;
+          foreach (Product product in list)
           {
-            int col = columnInfo.SingleOrDefault(c => c.ColumnName == prop.Name).Index;
-            var val = priceListSheet.Cells[row, col].Value;
-            var propType = prop.PropertyType;
-            if (propType.Name.Equals("Guid")) prop.SetValue(obj, Guid.Parse(val.ToString()));
-            else prop.SetValue(obj, Convert.ChangeType(val, propType));
-            workSheet.Cells[rowIndex, 1].Value = prop.Name;
-            if (prop.Name == "Id")
+            workSheet.Cells[rowIndex, 1].Value = ExcelServiceConstants.IdLocalized;
+            workSheet.Row(rowIndex).Height = 75.00D;
+            var barcode = new Barcode(product.Id, NetBarcode.Type.Code128, true);
+            var barcodeBuffer = barcode.GetByteArray();
+            using (var barcodeStream = new MemoryStream(barcodeBuffer))
             {
-              var barcode = new Barcode(val.ToString(), NetBarcode.Type.Code128, true);
-              var buffer = barcode.GetByteArray();
-              workSheet.Row(rowIndex).Height = 75.00D;
-              using (var stream = new System.IO.MemoryStream(buffer))
-              {
-                stream.Position = 0;
-                var picture = workSheet.Drawings.AddPicture(val.ToString(), stream, OfficeOpenXml.Drawing.ePictureType.Jpg);
-                picture.SetSize(250, 100);
-                picture.SetPosition(rowIndex - 1, 0, 1, 0);
-              }
-            }
-            if (prop.Name == "Price")
-            {
-              workSheet.Cells[rowIndex, 2].Value = string.Format(CultureInfo.CurrentCulture, "{0:c2}", val);
-              workSheet.Cells[rowIndex, 2].Style.Font.Bold = true;
-              workSheet.Cells[rowIndex, 2].Style.Font.Size = 24;
-              workSheet.Cells[rowIndex, 2].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Right;
+              barcodeStream.Position = 0;
+              var barcodePicture = workSheet.Drawings.AddPicture(product.Id, barcodeStream, OfficeOpenXml.Drawing.ePictureType.Jpg);
+              barcodePicture.SetSize(250, 100);
+              barcodePicture.SetPosition(rowIndex-1, 0, 1, 0);
               rowIndex++;
             }
-            if ((prop.Name != "Id") || (prop.Name != "Price")) workSheet.Cells[rowIndex, 2].Value = val.ToString();
+            workSheet.Cells[rowIndex, 1].Value = ExcelServiceConstants.NameLocalized;
+            workSheet.Cells[rowIndex++, 2].Value = product.Name;
+            workSheet.Cells[rowIndex, 1].Value = ExcelServiceConstants.ManufacturerLocalized;
+            workSheet.Cells[rowIndex++, 2].Value = product.Manufacturer;
+            workSheet.Cells[rowIndex, 1].Value = ExcelServiceConstants.PriceLocalized;
+            workSheet.Cells[rowIndex, 2].Value = product.Price;
+            workSheet.Cells[rowIndex, 2].Style.Font.Bold = true;
+            workSheet.Cells[rowIndex, 2].Style.Font.Size = 24;
+            workSheet.Cells[rowIndex++, 2].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Right;
             rowIndex++;
           }
+          workSheet.Column(1).AutoFit();
+          workSheet.Column(2).Width = 37.00D;
         }
-        workSheet.Cells[1, 1, workSheet.Dimension.Rows, workSheet.Dimension.Columns].AutoFitColumns();
-        try
-        {
-          excelPackage.Save();
-        }
-        catch (InvalidOperationException ex)
-        {
-          Console.WriteLine($"Неуспешно, файл недоступен. {ex}");
-        }
-      }
+        await excelPackage.SaveAsync();
+      }      
     }
-
-    public void AddFileAndSheetsIfNotExists(string directory, string customSheetName="")
+    /// <summary>
+    ////Метод для создания раобчих файлов и листов Excel.
+    /// </summary>
+    /// <param name="directory"> Путь до директории с рабочими файлами Excel. </param>
+    /// <param name="customFileName"> Название файла со списком продуктов. </param>
+    /// <param name="customSheetName"> Название листа со списком продуктов. </param>
+    private void CreateFileAndSheetsIfNotExists(string directory, string customFileName="", string customSheetName="")
     {
       ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-      using (var excelPackage = new ExcelPackage(Path.Combine(directory, ExcelServiceConstants.DefaultExcelFileName)))
+      using (var excelPackage = new ExcelPackage(Path.Combine(directory, ExcelServiceConstants.PriceListFileName)))
       {
-        ExcelWorksheet workSheet = excelPackage.Workbook.Worksheets[ExcelServiceConstants.DefaultPriceTagsSheetName];
-        if (workSheet == null) excelPackage.Workbook.Worksheets.Add(ExcelServiceConstants.DefaultPriceTagsSheetName);
-        ExcelWorksheet priceListSheet = excelPackage.Workbook.Worksheets[ExcelServiceConstants.DefaultPriceListSheetName];
-        if (priceListSheet == null) excelPackage.Workbook.Worksheets.Add(ExcelServiceConstants.DefaultPriceListSheetName);
-        if (!string.IsNullOrEmpty(customSheetName)) excelPackage.Workbook.Worksheets.Add(customSheetName);
+        ExcelWorksheet priceListSheet = excelPackage.Workbook.Worksheets[ExcelServiceConstants.PriceListSheetName];
+        if (priceListSheet == null) excelPackage.Workbook.Worksheets.Add(ExcelServiceConstants.PriceListSheetName);
+        excelPackage.Save();
+      }
+      using (var excelPackage = new ExcelPackage(Path.Combine(directory, ExcelServiceConstants.PriceTagsFileName)))
+      {
+        ExcelWorksheet priceTagsSheet = excelPackage.Workbook.Worksheets[ExcelServiceConstants.PriceTagsSheetName];
+        if (priceTagsSheet == null) excelPackage.Workbook.Worksheets.Add(ExcelServiceConstants.PriceTagsSheetName);
+        excelPackage.Save();
+      }
+      using (var excelPackage = new ExcelPackage(Path.Combine(directory, ExcelServiceConstants.ReportFileName)))
+      {
+        ExcelWorksheet reportSheet = excelPackage.Workbook.Worksheets[ExcelServiceConstants.ReportSheetName];
+        if (reportSheet == null) excelPackage.Workbook.Worksheets.Add(ExcelServiceConstants.ReportSheetName);
+        excelPackage.Save();
+      }
+      if ((string.IsNullOrEmpty(customFileName)) || (string.IsNullOrEmpty(customSheetName))) return;
+      using (var excelPackage = new ExcelPackage(Path.Combine(directory, customFileName)))
+      {
+        ExcelWorksheet workSheet = excelPackage.Workbook.Worksheets[customSheetName];
+        if (workSheet == null) excelPackage.Workbook.Worksheets.Add(customSheetName);
         excelPackage.Save();
       }
     }
+    #endregion
 
+    #region Конструкторы.
+    /// <summary>
+    /// Конструктор сервисного класса Excel.
+    /// </summary>
+    /// <param name="directory"> Путь до директории с рабочими файлами Excel. </param>
+    public ExcelService(string directory)
+    {
+      if ((!File.Exists(Path.Combine(directory, ExcelServiceConstants.PriceListFileName)))
+          && (!File.Exists(Path.Combine(directory, ExcelServiceConstants.PriceTagsFileName)))
+          && (!File.Exists(Path.Combine(directory, ExcelServiceConstants.ReportFileName)))
+         )
+        CreateFileAndSheetsIfNotExists(directory);
+    }
     #endregion
   }
 }

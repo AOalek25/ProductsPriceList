@@ -1,0 +1,63 @@
+﻿@page "/findinputdialog"
+@using ProductLibrary
+@using ProductLibrary.Model
+@using ProductLibrary.Exceptions
+
+@inject ProductRepo repo
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+
+<h3>Введите данные для поиска.</h3>
+
+<div class="row">
+  <div class="col">
+    <input class="form-control" placeholder="Введите наименование" @bind="_name" required minlength="2"></input>
+  </div>
+  <div class="col">
+    <input class="form-control" placeholder="Введите производителя" @bind="_manufacturer" required minlength="2"></input>
+  </div>
+</div>
+
+<button class="btn btn-primary" @onclick="Find">Найти</button>
+<a href="pricelist" class="btn btn-primary">Назад</a>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Идентификатор</th>
+      <th>Наименование</th>
+      <th>Производитель</th>
+      <th>Цена</th>
+    </tr>
+  </thead>
+  <tbody>    
+    @if (_findedProduct!= null)
+    {
+    <tr>
+      <td>@_findedProduct.Id</td>
+      <td>@_findedProduct.Name</td>
+      <td>@_findedProduct.Manufacturer</td>
+      <td>@_findedProduct.Price</td>
+    </tr>
+    }
+  </tbody>
+</table>
+
+@code {
+  private string _name = "";
+  private string _manufacturer = "";  
+  private Product? _findedProduct;
+
+  internal async Task Find()
+  {
+    _findedProduct = null;
+    try
+    {        
+      _findedProduct = repo.Read(_name, _manufacturer);      
+    }    
+    catch (ProductNotFoundException ex)
+    { 
+      await JS.InvokeVoidAsync("alert", ex.Message);
+    }
+  }
+}

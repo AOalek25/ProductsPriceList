@@ -1,10 +1,6 @@
-﻿namespace ProducstLibrary.Exceptions
+﻿namespace ProductLibrary.Exceptions
 {
+  // Исключение "продукт уже существует".
   public class ProductAlreadyExistException : Exception
-  {
-    // Исключение "продукт уже существует".
-    public ProductAlreadyExistException(string? message) : base(message)
-    {
-    }
-  }
+  { }
 }
