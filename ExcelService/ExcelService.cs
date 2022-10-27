@@ -134,6 +134,26 @@ namespace ExcelService
         await excelPackage.SaveAsync();
       }      
     }
+    public async Task GenerateReport(string directory)
+    {
+      List<Product> products = new();
+      List<Product> newProducts = new();
+      List<Product> comparisonResult = new();
+      var ReportFilePath = Path.Combine(directory, ExcelServiceConstants.ReportFileName);
+      var NewPriceListFilePath = Path.Combine(directory, ExcelServiceConstants.NewPriceListFileName);
+      products = this.LoadFromFile(directory).ToList();
+      if (File.Exists(NewPriceListFilePath))
+        newProducts = this.LoadFromFile(directory, ExcelServiceConstants.NewPriceListFileName).ToList();
+      else throw new FileNotFoundException();
+      foreach (Product product in products)
+        foreach (Product newProduct in newProducts)
+          if ((product.Name == newProduct.Name) && (product.Manufacturer == newProduct.Manufacturer) && (product.Price != newProduct.Price))
+            comparisonResult.Add(newProduct);
+          else continue;
+      await this.SaveToFileAsync(comparisonResult, directory, ExcelServiceConstants.ReportFileName, ExcelServiceConstants.ReportSheetName);    
+    }
+
+
     /// <summary>
     ////Метод для создания раобчих файлов и листов Excel.
     /// </summary>
@@ -168,7 +188,7 @@ namespace ExcelService
         if (workSheet == null) excelPackage.Workbook.Worksheets.Add(customSheetName);
         excelPackage.Save();
       }
-    }
+    }    
     #endregion
 
     #region Конструкторы.

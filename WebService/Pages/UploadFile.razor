@@ -83,23 +83,10 @@
   {
     if (_generateReport)
     {
-      List<Product> products = new();
-      List<Product> newProducts = new();
-      List<Product> comparisonResult = new();
-      var ReportFilePath = Path.Combine(ExcelServiceConstants.BlazorData, ExcelServiceConstants.ReportFileName);
-      var NewPriceListFilePath = Path.Combine(ExcelServiceConstants.BlazorData, ExcelServiceConstants.NewPriceListFileName);
       try
       {
-        products = _excelService.LoadFromFile(ExcelServiceConstants.BlazorData).ToList();
-        if (File.Exists(NewPriceListFilePath))
-          newProducts = _excelService.LoadFromFile(ExcelServiceConstants.BlazorData, ExcelServiceConstants.NewPriceListFileName).ToList();
-        else throw new FileNotFoundException();
-        foreach (Product product in products)
-          foreach (Product newProduct in newProducts)
-            if ((product.Name == newProduct.Name) && (product.Manufacturer == newProduct.Manufacturer) && (product.Price != newProduct.Price))
-              comparisonResult.Add(newProduct);
-            else continue;
-        await _excelService.SaveToFileAsync(comparisonResult, ExcelServiceConstants.BlazorData, ExcelServiceConstants.ReportFileName, ExcelServiceConstants.ReportSheetName);
+        await _excelService.GenerateReport(ExcelServiceConstants.BlazorData);
+        var ReportFilePath = Path.Combine(ExcelServiceConstants.BlazorData, ExcelServiceConstants.ReportFileName);
         var fileStream = File.OpenRead(ReportFilePath);
         using var streamRef = new DotNetStreamReference(stream: fileStream);
         await JS.InvokeVoidAsync("downloadFileFromStream", ExcelServiceConstants.ReportFileName, streamRef);
@@ -128,11 +115,10 @@
         await JS.InvokeVoidAsync("alert", ex.Message);
       }
       catch (InvalidOperationException ex)
-      { 
+      {
         await JS.InvokeVoidAsync("alert", ex.Message);
       }
       this.NavigationManager.NavigateTo("/pricelist", true);
     }
-  }
-    
+  }    
 }

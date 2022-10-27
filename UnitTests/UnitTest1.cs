@@ -5,12 +5,13 @@ using RandomDataGenerator.FieldOptions;
 using ProductLibrary.Exceptions;
 using ExcelService;
 using OfficeOpenXml;
+using System.Linq;
 
 namespace UnitTests
 {
   public class Tests
   {
-    private const string Manufacturer = "manufacturer" ;
+    private const string Manufacturer = "manufacturer";
     private const string Price2_5 = "2,5";
     private const string Price2_3 = "2,3";
     private const string Price2_4 = "2,4";
@@ -20,7 +21,7 @@ namespace UnitTests
     private const string Product2 = "Product2";
     private const string Item3 = "Item3";
     private const string tooShortString = "a";
-    private readonly ProductRepo repo=new();    
+    private readonly ProductRepo repo = new();
     private Product? testProduct;
     private Product? newTestProduct;
     readonly Random intGenerator = new();
@@ -39,23 +40,23 @@ namespace UnitTests
     public void Setup()
     {
       var stringFactory = RandomizerFactory.GetRandomizer(new FieldOptionsText
-                                                         { UseNumber = false, 
-                                                           UseSpecial = false, 
-                                                           UseSpace = false, 
-                                                           Seed = 10 });
+      { UseNumber = false,
+        UseSpecial = false,
+        UseSpace = false,
+        Seed = 10 });
       validName = stringFactory.Generate();
-      validManufacturer = stringFactory.Generate();      
+      validManufacturer = stringFactory.Generate();
       tooShortName = tooShortString;
       tooShortManufacturer = tooShortString;
       var stringUnvalidFactory = RandomizerFactory.GetRandomizer(new FieldOptionsText
-                                                                { UseNumber = true, 
-                                                                  UseSpecial = true, 
-                                                                  UseSpace = true, 
-                                                                  Seed = 10 });
+      { UseNumber = true,
+        UseSpecial = true,
+        UseSpace = true,
+        Seed = 10 });
       unvalidName = stringUnvalidFactory.Generate();
       unvalidManufacturer = stringUnvalidFactory.Generate();
-      validPrice = (intGenerator.Next(0, int.MaxValue)/100).ToString();
-      negativePrice = (intGenerator.Next(int.MinValue, 0)/100).ToString();
+      validPrice = (intGenerator.Next(0, int.MaxValue) / 100).ToString();
+      negativePrice = (intGenerator.Next(int.MinValue, 0) / 100).ToString();
       unvalidPrice = stringUnvalidFactory.Generate();
       if ((validName != null) && (validManufacturer != null) && (validPrice != null))
       {
@@ -73,6 +74,24 @@ namespace UnitTests
       {
         Assert.That(repo.GetAll().Any(x => x.Equals(testProduct)), Is.True);
         Assert.That((repo.GetAll().Count() == 1), Is.True);
+      });
+    }
+
+    [Test]
+    public void AddRangeProductsTest()
+    {
+      List<Product> list=new();
+      if ((testProduct != null) && (newTestProduct != null))
+      {
+        list.Add(testProduct);
+        list.Add(newTestProduct);
+      }
+      repo.AddRange(list);
+      Assert.Multiple(() =>
+      {
+        Assert.That(repo.GetAll().Any(x => x.Equals(testProduct)), Is.True);
+        Assert.That(repo.GetAll().Any(x => x.Equals(newTestProduct)), Is.True);
+        Assert.That((repo.GetAll().Count() == 2), Is.True);
       });
     }
 
@@ -296,6 +315,40 @@ namespace UnitTests
         ExcelWorksheet workSheet = excelPackage.Workbook.Worksheets[ExcelServiceConstants.PriceTagsSheetName];
         if (workSheet != null)
           Assert.That(workSheet.Drawings.Any(), Is.True);
+      }
+    }
+    [Test]
+    public async Task ReportSaveToFileTest()
+    {
+      excelservice = new(Environment.CurrentDirectory);
+      if (testProduct != null)
+        repo.Create(testProduct);
+      await excelservice.SaveToFileAsync(repo.GetAll(), Environment.CurrentDirectory);
+      if (testProduct != null)
+      {
+        decimal decimalPrice = decimal.Parse(testProduct.Price);
+        decimal newDecimalPrice = decimalPrice + 1;
+        testProduct.Price= newDecimalPrice.ToString();
+        repo.Clear();
+        repo.Create(testProduct);
+      }
+      await excelservice.SaveToFileAsync(repo.GetAll(), Environment.CurrentDirectory, ExcelServiceConstants.NewPriceListFileName);
+      ExcelPackage.LicenseContext = LicenseContext.NonCommercial;      
+      using (var excelPackage = new ExcelPackage(Path.Combine(Environment.CurrentDirectory, ExcelServiceConstants.ReportFileName)))
+      {
+        ExcelWorksheet workSheet = excelPackage.Workbook.Worksheets[ExcelServiceConstants.ReportSheetName];
+        if (workSheet != null)
+        {
+          workSheet.Cells.Clear();
+          workSheet.Drawings.Clear();
+          await excelservice.GenerateReport(Environment.CurrentDirectory);
+        }
+      }
+      using (var excelPackage = new ExcelPackage(Path.Combine(Environment.CurrentDirectory, ExcelServiceConstants.ReportFileName)))
+      {
+        ExcelWorksheet workSheet = excelPackage.Workbook.Worksheets[ExcelServiceConstants.ReportSheetName];
+        if (workSheet != null)
+          Assert.That((workSheet.Cells[2,1].Value !=null), Is.True);
       }
     }
 
