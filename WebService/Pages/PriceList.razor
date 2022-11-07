@@ -29,8 +29,12 @@ else
    <button class="btn btn-primary" @onclick="() => _modal?.UploadNewFile()">Загрузить новый файл</button>
    <button class="btn btn-primary" @onclick="() => _modal?.GenerateReport()">Отчет об измененнии цен</button>
    <button class="btn btn-primary" @onclick="PrintPriceTags">Файл с ценниками</button>
-     
-  <table class="table">
+
+  <table class="table" width="100%">
+    <col style="width:30%">
+    <col style="width:30%">
+    <col style="width:30%">
+    <col style="width:10%">
     <thead>
       <tr>
         <th>Идентификатор</th>        
