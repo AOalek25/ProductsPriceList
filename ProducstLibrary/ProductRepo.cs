@@ -110,7 +110,7 @@ namespace ProductLibrary
     /// <returns> Возвращает коллекцию всех продуктов из репозитория, отсортированную по цене продуктов. </returns>
     public IEnumerable<Product> SortedtByPrice()
     {
-      var sortedList = _list.OrderBy(product => product.Price);
+      var sortedList = this._list.OrderBy(product => product.Price, StringComparison.OrdinalIgnoreCase.WithNaturalSort());
       this._list = sortedList.ToList();
       return sortedList;
     }
