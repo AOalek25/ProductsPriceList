@@ -3,13 +3,14 @@ using ProductLibrary.Model;
 using ProductLibrary.Attributes;
 using NaturalSort.Extension;
 using System.Text;
+using System.Collections;
 
 namespace ProductLibrary
 {
   /// <summary>
   /// Репозиторий для продуктов.
   /// </summary>
-  public class ProductRepo 
+  public class ProductRepo : IEnumerable<Product>
   {
     #region Поля и свойства         
     /// <summary>
@@ -132,6 +133,13 @@ namespace ProductLibrary
       if (stringBuilder.ToString().Length > 0)
         throw new ValidationException(stringBuilder.ToString());
     }
+
+    public IEnumerator<Product> GetEnumerator()
+    {
+      return ((IEnumerable<Product>)_list).GetEnumerator();
+    }
+
+    
     #endregion
 
 

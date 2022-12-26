@@ -27,14 +27,7 @@ namespace SQLService
     {
       using (ISession session = NHibernateHelper.OpenSession())
         return new List<T>(session.CreateCriteria(typeof(T)).List<T>());
-    }
-    public static List<T> GetAllExpanded()
-    {
-      
-      using (ISession session = NHibernateHelper.OpenSession())        
-        return new List<T>(session.CreateCriteria(typeof(T)).List<T>());
-      
-    }
+    }    
 
     public static void Delete(T item)
     {
@@ -57,7 +50,7 @@ namespace SQLService
     }
 
     public static void SaveRange(List<T> list)
-    {
+    {      
       using (ISession session = NHibernateHelper.OpenSession())
       using (ITransaction transaction = session.BeginTransaction())
       {

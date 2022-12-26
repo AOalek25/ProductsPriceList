@@ -5,7 +5,8 @@
 @using System.IO
 @using SQLService
 
-@inject ProductRepo repo
+@inject ProductRepo productRepo
+@inject ManufacturerRepo manufacturerRepo
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JS
 
@@ -13,7 +14,7 @@
 
 <h1>Прайс-лист продуктов</h1>
 
-@if (repo == null)
+@if (productRepo == null)
 {
   <p><em>Loading...</em></p>
 }
@@ -44,7 +45,7 @@ else
       </tr>
     </thead>
     <tbody>
-      @foreach (var product in _productslist)
+      @foreach (var product in productRepo)
       {
         <tr>
           <td>@product.Id</td>          
@@ -59,30 +60,37 @@ else
 }
 
 @code {
-  private WebService.Pages.UploadFile? _modal { get; set; }     
-  private List<Product> _productslist = new();  
-  private List<Manufacturer> _manufacturerslist = new();  
-  Manufacturer manufacturer;
+  private WebService.Pages.UploadFile? _modal { get; set; }       
+  Manufacturer manufacturer=new();
 
   protected override async Task OnInitializedAsync()
   {
-    _productslist = SQLService<Product>.GetAll();
-    _manufacturerslist = SQLService<Manufacturer>.GetAll();
+    productRepo.Clear();
+    manufacturerRepo.Clear();
+    productRepo.AddRange(SQLService<Product>.GetAll());
+    manufacturerRepo.AddRange(SQLService<Manufacturer>.GetAll());
 
-    foreach (var product in _productslist)
-    {
-      manufacturer = _manufacturerslist.Where(x => x.Id == product.ManufacturerId).ToList().FirstOrDefault();
+    foreach (var product in productRepo)
+    {     
+      manufacturer = manufacturerRepo.Where(manuf => manuf.Id == product.ManufacturerId).ToList().FirstOrDefault();      
     }
+    await Task.Delay(0);
   }
 
   internal async Task SortByName()
-  {
-    
+  {    
+    var sortedList = productRepo.SortedByName().ToList();
+    SQLService<Product>.DeleteRange(productRepo.ToList());
+    SQLService<Product>.SaveRange(sortedList);
+    await this.OnInitializedAsync();
   }
 
   internal async Task SortByPrice()
   {
-    
+    var sortedList = productRepo.SortedtByPrice().ToList();
+    SQLService<Product>.DeleteRange(productRepo.ToList());
+    SQLService<Product>.SaveRange(sortedList);
+    await this.OnInitializedAsync();
   }
 
   internal async Task PrintPriceTags()
