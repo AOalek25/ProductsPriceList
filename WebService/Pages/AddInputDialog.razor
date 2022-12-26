@@ -15,7 +15,7 @@
       <input class="form-control" placeholder="Введите наименование" @bind="_name" required minlength="2"></input>
     </div>
     <div class="col">
-      <input class="form-control" placeholder="Введите производителя" @bind="_manufacturer" required minlength="2"></input>
+      <input class="form-control" placeholder="Введите производителя" @bind="_manufacturerId" required minlength="2"></input>
     </div>
     <div class="col">
       <input class="form-control" placeholder="Введите цену" @bind="_price" required minlength="1"></input>
@@ -28,14 +28,14 @@
 @code {    
   private string _name = "";
   private string _price = "";
-  private string _manufacturer = "";
+  private Guid _manufacturerId = Guid.NewGuid();
   private ExcelService _excelService = new(ExcelServiceConstants.BlazorData);
   
   internal async Task Add()
   {    
     try
     {
-      repo.Create(new Product(_name, _manufacturer, _price));
+      repo.Create(new Product(_name, _manufacturerId, _price));
       await _excelService.SaveToFileAsync(repo.GetAll(), ExcelServiceConstants.BlazorData, ExcelServiceConstants.PriceListFileName);
     }
     catch (ValidationException ex)

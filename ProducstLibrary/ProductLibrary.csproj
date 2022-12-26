@@ -15,7 +15,25 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Model\Manufacturer.hbm.xml" />
+    <None Remove="Model\Product.hbm.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Model\Manufacturer.hbm.xml" />
+    <EmbeddedResource Include="Model\Product.hbm.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentNHibernate" Version="3.1.0" />
     <PackageReference Include="NaturalSort.Extension" Version="4.0.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="hibernate.cfg.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

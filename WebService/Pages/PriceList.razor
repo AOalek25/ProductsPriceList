@@ -1,9 +1,9 @@
 ﻿@page "/pricelist"
-@using ExcelService
 @using ProductLibrary
 @using ProductLibrary.Exceptions
 @using ProductLibrary.Model
 @using System.IO
+@using SQLService
 
 @inject ProductRepo repo
 @inject NavigationManager NavigationManager
@@ -44,12 +44,12 @@ else
       </tr>
     </thead>
     <tbody>
-      @foreach (var product in _list)
+      @foreach (var product in _productslist)
       {
         <tr>
           <td>@product.Id</td>          
           <td>@product.Name</td>
-          <td>@product.Manufacturer</td>
+          <td>@manufacturer.Name</td>
           <td>@product.Price</td>
         </tr>
       }
@@ -59,83 +59,34 @@ else
 }
 
 @code {
-  private WebService.Pages.UploadFile? _modal { get; set; }   
-  private ExcelService _excelService = new(ExcelServiceConstants.BlazorData);
-  private List<Product> _list = new();
+  private WebService.Pages.UploadFile? _modal { get; set; }     
+  private List<Product> _productslist = new();  
+  private List<Manufacturer> _manufacturerslist = new();  
+  Manufacturer manufacturer;
 
   protected override async Task OnInitializedAsync()
   {
-    repo.Clear();
-    try
+    _productslist = SQLService<Product>.GetAll();
+    _manufacturerslist = SQLService<Manufacturer>.GetAll();
+
+    foreach (var product in _productslist)
     {
-      var listFromfile = _excelService.LoadFromFile(ExcelServiceConstants.BlazorData);
-      repo.AddRange(listFromfile);
+      manufacturer = _manufacturerslist.Where(x => x.Id == product.ManufacturerId).ToList().FirstOrDefault();
     }
-    catch (ValidationException ex)
-    { 
-      await JS.InvokeVoidAsync("alert", ex.Message); 
-    }
-    catch (InvalidOperationException ex)
-    { 
-      await JS.InvokeVoidAsync("alert", ex.Message);
-    }
-    _list = repo.GetAll().ToList();
-    await Task.CompletedTask;
   }
 
   internal async Task SortByName()
   {
-    try
-    {
-      var sortedList = repo.SortedByName();
-      await _excelService.SaveToFileAsync(sortedList, ExcelServiceConstants.BlazorData);
-    }
-    catch (ValidationException ex)
-    {
-      await JS.InvokeVoidAsync("alert", ex.Message);
-    }
-    catch (InvalidOperationException ex)
-    { 
-      await JS.InvokeVoidAsync("alert", ex.Message);
-    }
-    await OnInitializedAsync();
+    
   }
 
   internal async Task SortByPrice()
   {
-    try
-    {
-      var sortedList = repo.SortedtByPrice();
-      await _excelService.SaveToFileAsync(sortedList, ExcelServiceConstants.BlazorData);
-    }
-    catch (ValidationException ex)
-    {
-      await JS.InvokeVoidAsync("alert", ex.Message);
-    }
-    catch (InvalidOperationException ex)
-    { 
-      await JS.InvokeVoidAsync("alert", ex.Message);
-    }
-    await OnInitializedAsync();
+    
   }
 
   internal async Task PrintPriceTags()
   {
-    try
-    {
-      await _excelService.PrintAllPriceTagsAsync(repo.GetAll(), ExcelServiceConstants.BlazorData);
-      var PriceTagsFilePath = Path.Combine(ExcelServiceConstants.BlazorData, ExcelServiceConstants.PriceTagsFileName);
-      var fileStream = File.OpenRead(PriceTagsFilePath);
-      using var streamRef = new DotNetStreamReference(stream: fileStream);
-      await JS.InvokeVoidAsync("downloadFileFromStream", ExcelServiceConstants.PriceTagsFileName, streamRef);
-    }
-    catch (FileNotFoundException ex)
-    {
-      await JS.InvokeVoidAsync("alert", ex.Message);
-    }
-    catch (InvalidOperationException ex)
-    { 
-      await JS.InvokeVoidAsync("alert", ex.Message);
-    }
-   }  
+    
+  }  
 }

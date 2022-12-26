@@ -29,8 +29,12 @@ namespace ProductLibrary.Attributes
       Regex regex = new(@"[^a-zA-Zа-яА-Я1-9 ]");
       if (item is Product product)
         if (product.Name.Length >= minLenght) return (regex.IsMatch(product.Name));
+        else return true;      
+      else if (item is Manufacturer manufacturer)
+        if (manufacturer.Name.Length >= minLenght) return (regex.IsMatch(manufacturer.Name));
         else return true;
       else return true;
+
     }
     #endregion
 

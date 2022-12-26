@@ -15,7 +15,7 @@
     <input class="form-control" placeholder="Введите наименование" @bind="_name" required minlength="2"></input>
   </div>
   <div class="col">
-    <input class="form-control" placeholder="Введите производителя" @bind="_manufacturer" required minlength="2"></input>
+    <input class="form-control" placeholder="Введите производителя" @bind="_manufacturerId" ></input>
   </div>  
 </div>
 
@@ -24,14 +24,14 @@
 
 @code {  
   private string _name = "";  
-  private string _manufacturer = "";
+  private int _manufacturerId = 0;
   private ExcelService _excelService = new(ExcelServiceConstants.BlazorData);
 
   internal async Task Delete()
   {   
     try
     {
-      repo.Delete(_name, _manufacturer);
+      repo.Delete(_name, _manufacturerId);
       await _excelService.SaveToFileAsync(repo.GetAll(), ExcelServiceConstants.BlazorData, ExcelServiceConstants.PriceListFileName);
     }
     catch (InvalidOperationException ex)

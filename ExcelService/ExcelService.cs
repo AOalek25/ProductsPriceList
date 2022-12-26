@@ -33,7 +33,7 @@ namespace ExcelService
         {
           string? id = string.Empty;
           string? name = string.Empty; 
-          string? manufacturer = string.Empty;
+          int manufacturerId = 0;
           string? price = string.Empty;
           foreach (var column in ColumnsInfo)
             switch (column.Name)
@@ -45,14 +45,14 @@ namespace ExcelService
                 name = priceListSheet.Cells[row, column.Index].Value.ToString();
                 break;
               case ExcelServiceConstants.Manufacturer:
-                manufacturer = priceListSheet.Cells[row, column.Index].Value.ToString();
+                manufacturerId = int.Parse(priceListSheet.Cells[row, column.Index].Value.ToString());
                 break;
               case ExcelServiceConstants.Price:
                 price = priceListSheet.Cells[row, column.Index].Value.ToString();
                 break;
             }       
-          if ((id != null) && (name != null) && (manufacturer != null) && (price != null))
-            items.Add(new Product(id, name, manufacturer, price));
+          if ((id != null) && (name != null) && (manufacturerId != null) && (price != null))
+            items.Add(new Product( name, Guid.Parse("DEA29528-56F1-4A7F-8B56-7B8181F17631"), price));
         }        
       }
       return items;
@@ -107,12 +107,12 @@ namespace ExcelService
           {
             workSheet.Cells[rowIndex, 1].Value = ExcelServiceConstants.IdLocalized;
             workSheet.Row(rowIndex).Height = 75.00D;
-            var barcode = new Barcode(product.Id, NetBarcode.Type.Code128, true);
+            var barcode = new Barcode(product.Id.ToString(), NetBarcode.Type.Code128, true);
             var barcodeBuffer = barcode.GetByteArray();
             using (var barcodeStream = new MemoryStream(barcodeBuffer))
             {
               barcodeStream.Position = 0;
-              var barcodePicture = workSheet.Drawings.AddPicture(product.Id, barcodeStream, OfficeOpenXml.Drawing.ePictureType.Jpg);
+              var barcodePicture = workSheet.Drawings.AddPicture(product.Id.ToString(), barcodeStream, OfficeOpenXml.Drawing.ePictureType.Jpg);
               barcodePicture.SetSize(250, 100);
               barcodePicture.SetPosition(rowIndex-1, 0, 1, 0);
               rowIndex++;
@@ -120,7 +120,7 @@ namespace ExcelService
             workSheet.Cells[rowIndex, 1].Value = ExcelServiceConstants.NameLocalized;
             workSheet.Cells[rowIndex++, 2].Value = product.Name;
             workSheet.Cells[rowIndex, 1].Value = ExcelServiceConstants.ManufacturerLocalized;
-            workSheet.Cells[rowIndex++, 2].Value = product.Manufacturer;
+            workSheet.Cells[rowIndex++, 2].Value = product.ManufacturerId;
             workSheet.Cells[rowIndex, 1].Value = ExcelServiceConstants.PriceLocalized;
             workSheet.Cells[rowIndex, 2].Value = product.Price;
             workSheet.Cells[rowIndex, 2].Style.Font.Bold = true;
@@ -153,7 +153,7 @@ namespace ExcelService
       else throw new FileNotFoundException();
       foreach (Product product in products)
         foreach (Product newProduct in newProducts)
-          if ((product.Name == newProduct.Name) && (product.Manufacturer == newProduct.Manufacturer) && (product.Price != newProduct.Price))
+          if ((product.Name == newProduct.Name) && (product.ManufacturerId == newProduct.ManufacturerId) && (product.Price != newProduct.Price))
             comparisonResult.Add(newProduct);
           else continue;
       await this.SaveToFileAsync(comparisonResult, directory, ExcelServiceConstants.ReportFileName, ExcelServiceConstants.ReportSheetName);    

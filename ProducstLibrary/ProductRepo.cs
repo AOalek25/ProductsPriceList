@@ -9,7 +9,7 @@ namespace ProductLibrary
   /// <summary>
   /// Репозиторий для продуктов.
   /// </summary>
-  public class ProductRepo
+  public class ProductRepo 
   {
     #region Поля и свойства         
     /// <summary>
@@ -38,9 +38,9 @@ namespace ProductLibrary
     /// <param name="manufacturer"> Производитель продукта для чтения. </param>
     /// <returns> Возвращает продукт, найденный по имени и производителю. </returns>
     /// <exception cref="ProductNotFoundException"> Исключение, выбрасываемое, если продукта нет в списке. </exception>
-    public Product Read(string name, string manufacturer)
+    public Product Read(string name, int manufacturerId)
     {
-      string itemToFind = $"{name} {manufacturer}";
+      string itemToFind = $"{name} {manufacturerId}";
       foreach (Product item in _list)        
         if (string.Compare(item.ToString(), itemToFind, StringComparison.CurrentCultureIgnoreCase) == 0) return item;
       throw new ProductNotFoundException();
@@ -51,24 +51,24 @@ namespace ProductLibrary
     /// <param name="itemOldData"> Передаваемый объект класса Продукт для удаления из списка.</param>
     /// <param name="itemNewData"> Передаваемый объект класса Продукт для добавления в список.</param>
     /// <exception cref="ProductAlreadyExistException"> Исключение, выбрасываемое, если добавляемый продукт уже есть в списке. </exception>
-    public void Update(Product itemOldData, Product itemNewData)
+ /*   public void Update(Product itemOldData, Product itemNewData)
     {
       Validate(itemNewData);
       foreach (Product item in _list)
         if (item.Equals(itemNewData)) throw new ProductAlreadyExistException();
-      Read(itemOldData.Name, itemOldData.Manufacturer);
+      Read(itemOldData.Name, itemOldData.ManufacturerId);
       _list.Remove(itemOldData);
       _list.Add(itemNewData);      
-    }
+    } */
     /// <summary>
     /// Метод для удаления продукта из списка.
     /// </summary>
     /// <param name="name"> Наименование продукта для удаления. </param>
     /// <param name="manufacturer"> Производитель продукта для удаления. </param>
     /// <exception cref="ProductNotFoundException"> Исключение, выбрасываемое, если продукта нет в списке. </exception>
-    public void Delete(string name, string manufacturer)
+    public void Delete(string name, int manufacturerId)
     {
-      if (Read(name, manufacturer) is Product product)
+      if (Read(name, manufacturerId) is Product product)
         _list.Remove(product);     
       else throw new ProductNotFoundException();
         
@@ -127,9 +127,7 @@ namespace ProductLibrary
       foreach (Attribute attr in attributes)
       {
         if (attr is NameValidator nameValidation)
-          if (nameValidation.NotValid(item, out string validationError)) stringBuilder.Append(validationError + Environment.NewLine);
-        if (attr is ManufacturerValidator manufacturerValidation)
-          if (manufacturerValidation.NotValid(item, out string validateError)) stringBuilder.Append(validateError + Environment.NewLine);
+          if (nameValidation.NotValid(item, out string validationError)) stringBuilder.Append(validationError + Environment.NewLine);        
       }
       if (stringBuilder.ToString().Length > 0)
         throw new ValidationException(stringBuilder.ToString());

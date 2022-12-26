@@ -11,6 +11,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebService", "WebService\We
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "UnitTests\UnitTests.csproj", "{A04A0F18-6296-41C8-9D7E-C17DC694707F}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{F7E480D1-0854-4656-8985-D66F9AA72559}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLService", "SQLService\SQLService.csproj", "{D176C319-3838-4179-A412-A1EB66A47848}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,14 @@ Global
 		{A04A0F18-6296-41C8-9D7E-C17DC694707F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A04A0F18-6296-41C8-9D7E-C17DC694707F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A04A0F18-6296-41C8-9D7E-C17DC694707F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7E480D1-0854-4656-8985-D66F9AA72559}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7E480D1-0854-4656-8985-D66F9AA72559}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7E480D1-0854-4656-8985-D66F9AA72559}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7E480D1-0854-4656-8985-D66F9AA72559}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D176C319-3838-4179-A412-A1EB66A47848}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D176C319-3838-4179-A412-A1EB66A47848}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D176C319-3838-4179-A412-A1EB66A47848}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D176C319-3838-4179-A412-A1EB66A47848}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

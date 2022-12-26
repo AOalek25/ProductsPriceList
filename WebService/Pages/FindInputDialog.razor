@@ -14,7 +14,7 @@
     <input class="form-control" placeholder="Введите наименование" @bind="_name" required minlength="2"></input>
   </div>
   <div class="col">
-    <input class="form-control" placeholder="Введите производителя" @bind="_manufacturer" required minlength="2"></input>
+    <input class="form-control" placeholder="Введите производителя" @bind="_manufacturerId" ></input>
   </div>
 </div>
 
@@ -36,7 +36,7 @@
     <tr>
       <td>@_findedProduct.Id</td>
       <td>@_findedProduct.Name</td>
-      <td>@_findedProduct.Manufacturer</td>
+      <td>@_findedProduct.ManufacturerId</td>
       <td>@_findedProduct.Price</td>
     </tr>
     }
@@ -45,7 +45,7 @@
 
 @code {
   private string _name = "";
-  private string _manufacturer = "";  
+  private int _manufacturerId = 0;  
   private Product? _findedProduct;
 
   internal async Task Find()
@@ -53,7 +53,7 @@
     _findedProduct = null;
     try
     {        
-      _findedProduct = repo.Read(_name, _manufacturer);      
+      _findedProduct = repo.Read(_name, _manufacturerId);      
     }    
     catch (ProductNotFoundException ex)
     { 

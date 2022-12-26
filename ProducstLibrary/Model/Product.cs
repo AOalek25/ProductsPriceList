@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using FluentNHibernate.Mapping;
 using ProductLibrary.Attributes;
 using ProductLibrary.Exceptions;
 
@@ -7,8 +8,7 @@ namespace ProductLibrary.Model
   /// <summary>
   /// Класс "Продукт".
   /// </summary>
-  [NameValidator(2)]
-  [ManufacturerValidator(2)]
+  [NameValidator(2)]  
   public class Product
   {
     #region Поля и свойства            
@@ -17,32 +17,29 @@ namespace ProductLibrary.Model
     /// <summary>
     /// Идентификатор продукта, присваивается только при создании объекта.
     /// </summary>
-    private readonly Guid _id;
+    public virtual Guid Id { get; set; }
     /// <summary>
     /// Цена продукта.
     /// </summary>
     private decimal _price;
+        
     /// <summary>
-    /// Строковое свойство для идентификатора продукта.
+    /// Наименование продукта.
     /// </summary>
-    public string Id { get => this._id.ToString(); }        
+    public virtual string Name { get; set; }
     /// <summary>
-    /// Наименование пордукта.
+    /// Идентификатор производителя продукта.
     /// </summary>
-    public string Name { get; set; }    
-    /// <summary>
-    /// Наименование производителя продукта.
-    /// </summary>
-    public string Manufacturer { get; set; }   
+    public virtual Guid ManufacturerId { get; set; }
     /// <summary>
     /// Строковое свойство для цены продукта. Возвращает цену в культуре клиента.
     /// </summary>
-    public string Price 
+    public virtual string Price
     {
       get
-      { 
-        return string.Format(CultureInfo.CurrentCulture, "{0:f2}", this._price); 
-      }      
+      {
+        return string.Format(CultureInfo.CurrentCulture, "{0:f2}", this._price);
+      }
       set
       {
         if ((decimal.TryParse(value, out decimal decimalValue)) && (decimalValue >= 0))
@@ -58,26 +55,30 @@ namespace ProductLibrary.Model
     /// </summary>
     /// <param name="obj"> Передаваемый объект для сравнения с текущим. </param>
     /// <returns> Возвращает true, если объекты равны, и false, если не равны. </returns>
-    public override bool Equals(object? obj) => (obj is Product product) && (this.ToString() == product.ToString());   
+    public override bool Equals(object? obj) => (obj is Product product) && (this.ToString() == product.ToString());
     /// <summary>
     /// Метод для строкового представления объекта.
     /// </summary>
     /// <returns> Возвращает строку с наименованием продукта и производителем. </returns>
-    public override string ToString() => $"{Name} {Manufacturer}";                      
+    public override string ToString() => $"{Name} {ManufacturerId}";
+    public override int GetHashCode()
+    {
+      return this.GetHashCode();
+    }
     #endregion
-
+    
     #region Конструкторы        
     /// <summary>
     /// Конструктор, принимающий три параметра(наименование, производитель, цена). Идентификатор задается автоматически.
     /// </summary>
     /// <param name="name"> Наименование продукта. </param>
-    /// <param name="manufacturer"> ПРоизводитель продукта. </param>
+    /// <param name="manufacturer"> Производитель продукта. </param>
     /// <param name="price"> Цена продукта. </param>
-    public Product(string name, string manufacturer, string price)
-    { 
-      this._id = Guid.NewGuid();            
+    public Product(string name, Guid manufacturerId, string price)
+    {      
+   //   this.Id = Guid.NewGuid();
       this.Name = name;
-      this.Manufacturer = manufacturer;
+      this.ManufacturerId = manufacturerId;
       this.Price = price;
     }
     /// <summary>
@@ -88,12 +89,22 @@ namespace ProductLibrary.Model
     /// <param name="manufacturer"> Производитель продукта. </param>
     /// <param name="price"> Цена продукта. </param>
     /// <exception cref="ValidationException"> Исключение, выбрасываемое при невалидном аргументе "идентификатор". </exception>
-    public Product(string id, string name, string manufacturer, string price) : this(name, manufacturer, price)
+    public Product(string id, string name, Guid manufacturerId, string price) : this(name, manufacturerId, price)
     {
       if (Guid.TryParse(id, out Guid idGuid))
-        this._id = idGuid;
+        this.Id = idGuid;
       else throw new ValidationException(IncorrectIdMessage);
     }
+
+    public Product()
+    {      
+ //     this.Id = Guid.NewGuid();
+      this.Name = "";
+      this.ManufacturerId = Guid.Parse("DEA29528-56F1-4A7F-8B56-7B8181F17631");
+      this.Price = "0";
+    }
+
     #endregion
-  }  
+    
+  }
 }

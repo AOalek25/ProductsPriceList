@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2"
+	namespace="ProductLibrary.Model" assembly="ProductLibrary">
+	<class name="Manufacturer" table="Manufacturer">
+		<id name="Id" column="Id">
+			<generator class="guid"/>
+		</id>
+		<property name="Name" column="Name"  />
+		<property name="Adressee" column="Adressee"  />
+	</class>
+</hibernate-mapping>
