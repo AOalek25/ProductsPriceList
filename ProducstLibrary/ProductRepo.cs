@@ -10,7 +10,7 @@ namespace ProductLibrary
   /// <summary>
   /// Репозиторий для продуктов.
   /// </summary>
-  public class ProductRepo : IEnumerable<Product>
+  public class ProductRepo
   {
     #region Поля и свойства         
     /// <summary>
@@ -86,8 +86,8 @@ namespace ProductLibrary
     /// <returns> Возвращает IEnumerable всех продуктов из репозитория. </returns>
     public IEnumerable<Product> AddRange(IEnumerable<Product> items)
     {
-      var distinctedList = items.Distinct();
-      foreach (Product product in distinctedList) Validate(product);
+      var distinctedList = items.Distinct().ToList();
+      foreach (var product in distinctedList) Validate(product);
       this._list.AddRange(distinctedList);
       return _list;
     }
@@ -133,12 +133,6 @@ namespace ProductLibrary
       if (stringBuilder.ToString().Length > 0)
         throw new ValidationException(stringBuilder.ToString());
     }
-
-    public IEnumerator<Product> GetEnumerator()
-    {
-      return ((IEnumerable<Product>)_list).GetEnumerator();
-    }
-
     
     #endregion
 

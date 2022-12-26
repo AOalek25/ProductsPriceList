@@ -11,7 +11,7 @@ using ProductLibrary.Model;
 
 namespace ProductLibrary
 {
-  public class ManufacturerRepo : IEnumerable<Manufacturer>
+  public class ManufacturerRepo
   {
     private List<Manufacturer> _list = new();
     public void Create(Manufacturer manufacturer)
@@ -60,20 +60,7 @@ namespace ProductLibrary
         throw new ValidationException(stringBuilder.ToString());
     }
 
-    public void Update(Manufacturer manufacturerOld, Manufacturer manufacturerNew)
-    {
-      _list.Add(manufacturerNew);
-      _list.Remove(manufacturerOld);
-    }
+    public IEnumerable<Manufacturer> GetAll() => this._list;
 
-    public IEnumerator<Manufacturer> GetEnumerator()
-    {
-      return ((IEnumerable<Manufacturer>)_list).GetEnumerator();
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-      return ((IEnumerable)_list).GetEnumerator();
-    }
   }
 }

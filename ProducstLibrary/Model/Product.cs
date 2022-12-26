@@ -61,10 +61,7 @@ namespace ProductLibrary.Model
     /// </summary>
     /// <returns> Возвращает строку с наименованием продукта и производителем. </returns>
     public override string ToString() => $"{Name} {ManufacturerId}";
-    public override int GetHashCode()
-    {
-      return this.GetHashCode();
-    }
+   
     #endregion
     
     #region Конструкторы        

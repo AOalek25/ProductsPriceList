@@ -45,7 +45,7 @@ else
       </tr>
     </thead>
     <tbody>
-      @foreach (var product in productRepo)
+      @foreach (var product in productRepo.GetAll())
       {
         <tr>
           <td>@product.Id</td>          
@@ -61,18 +61,16 @@ else
 
 @code {
   private WebService.Pages.UploadFile? _modal { get; set; }       
-  Manufacturer manufacturer=new();
+  Manufacturer manufacturer = new();
 
   protected override async Task OnInitializedAsync()
   {
-    productRepo.Clear();
-    manufacturerRepo.Clear();
+    productRepo.Clear();    
     productRepo.AddRange(SQLService<Product>.GetAll());
-    manufacturerRepo.AddRange(SQLService<Manufacturer>.GetAll());
-
-    foreach (var product in productRepo)
+    
+    foreach (var product in productRepo.GetAll())
     {     
-      manufacturer = manufacturerRepo.Where(manuf => manuf.Id == product.ManufacturerId).ToList().FirstOrDefault();      
+      manufacturer = manufacturerRepo.GetAll().Where(manuf => manuf.Id == product.ManufacturerId).ToList().FirstOrDefault();
     }
     await Task.Delay(0);
   }
@@ -80,7 +78,7 @@ else
   internal async Task SortByName()
   {    
     var sortedList = productRepo.SortedByName().ToList();
-    SQLService<Product>.DeleteRange(productRepo.ToList());
+    SQLService<Product>.DeleteRange(productRepo.GetAll().ToList());
     SQLService<Product>.SaveRange(sortedList);
     await this.OnInitializedAsync();
   }
@@ -88,7 +86,7 @@ else
   internal async Task SortByPrice()
   {
     var sortedList = productRepo.SortedtByPrice().ToList();
-    SQLService<Product>.DeleteRange(productRepo.ToList());
+    SQLService<Product>.DeleteRange(productRepo.GetAll().ToList());
     SQLService<Product>.SaveRange(sortedList);
     await this.OnInitializedAsync();
   }
